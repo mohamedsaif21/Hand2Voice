@@ -1,24 +1,19 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+import { Stack } from "expo-router";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="prototype/onboarding" options={{ headerShown: false }} />
+      <Stack.Screen name="prototype/translation Mode" options={{ headerShown: false }} />
+      <Stack.Screen name="prototype/settings" options={{ headerShown: false }} />
+      <Stack.Screen name="prototype/profile" options={{ headerShown: false }} />
+      <Stack.Screen name="prototype/signdetails" options={{ headerShown: false }} />
+      <Stack.Screen name="prototype/signtotext" options={{ headerShown: false }} />
+      <Stack.Screen name="prototype/texttosign" options={{ headerShown: false }} />
+      <Stack.Screen name="prototype/history" options={{ headerShown: false }} />
+      <Stack.Screen name="prototype/alphabet" options={{ headerShown: false }} />
+      <Stack.Screen name="prototype/login" options={{ headerShown: false }} />
+    </Stack>
   );
 }
