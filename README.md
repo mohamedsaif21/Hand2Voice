@@ -1,50 +1,39 @@
-# Welcome to your Expo app 👋
+﻿# SignLink AI App (Hand2Voice)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+ Project Overview
 
-## Get started
+The SignLink AI App is a smart communication tool designed to bridge the gap between the deaf, mute, and hearing communities. It enables real-time translation between Indian Sign Language (ISL) and text/speech using AI and a mobile-friendly interface.
 
-1. Install dependencies
+The project consists of two main modules:
 
-   ```bash
-   npm install
-   ```
+- **Sign-to-Text**: Converts ISL gestures captured from the mobile camera into text using AI-based hand gesture recognition.
+- **Text-to-Sign**: Converts typed or spoken text into simple sign animations or GIFs, helping users understand and learn ISL signs visually.
 
-2. Start the app
+This app uses React Native (Expo) for the front end and Firebase for the backend to manage authentication, data storage, and animation assets. The AI models are built using TensorFlow and MediaPipe, optimized for mobile with TFLite.
 
-   ```bash
-   npx expo start
-   ```
+The project aims to promote inclusive communication and make sign language translation accessible to everyone through an intuitive, easy-to-use mobile experience.
 
-In the output, you'll find options to open the app in a
+##  Tech Stack
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Frontend: React Native (Expo Go)
+- Backend: Firebase (Firestore, Storage, Authentication)
+- AI / ML: TensorFlow, MediaPipe, TFLite
+- Animations: LottieFiles / Free GIFs
+- Platform: Android (Expo Go compatible)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+##  Features
 
-## Get a fresh project
+- Real-time Sign-to-Text translation
+- Smooth Text-to-Sign animations
+- Login / Signup authentication
+- History tracking for translations
+- Voice-to-text input (optional)
+- Simple and clean UI built in Figma
 
-When you're ready, run:
+##  Goal
 
-```bash
-npm run reset-project
-```
+To build a fully functional, mobile-first AI-powered Sign Language Translator that enhances communication accessibility and learning for deaf and mute individuals.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+> This README was added programmatically by your assistant. Update it as needed.
