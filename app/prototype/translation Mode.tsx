@@ -100,12 +100,12 @@ export default function TranslationModeScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.card}>
           <View style={styles.imageContainer}>
-            <ImageBackground source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDoVzsy5eRia339Y2zdSJzps5g41v3_z01Vm2NKnDhOBTg0zX680BRGtO57s06XxbR_9XQ80Gg0ERKPXIt3HViAFBTZQp-gx4_IREZQIivqaULw2cL3qA2EiL5Z6sG25rLmlpclQFdgUA1f6PjSGcevRcBq-C9Tv41ZArBHsSYP150EH6Y9f8K7yZTyNuW-sydwORslJ-96XRCaGXb81jhatNMn2ZOLkj21lD2XQ0EC2HuZyM7m7qxaFvuSa9pTKFHh_QLj5j2IIWs' }} style={styles.cardImage} resizeMode="cover">
+            <ImageBackground source={require('../../assets/images/Sign to Text.jpg')} style={styles.cardImage} resizeMode="cover">
               <View style={[styles.gradient, { backgroundColor: 'rgba(16,28,34,0.7)' }]} />
             </ImageBackground>
           </View>
           <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Sign to Text/Speech</Text>
+            <Text style={styles.cardTitle}>Sign to Text</Text>
             <Text style={styles.cardDescription}>Translate sign language into text or spoken language in real-time.</Text>
             <TouchableOpacity 
               style={styles.primaryButton}
@@ -118,7 +118,25 @@ export default function TranslationModeScreen() {
 
         <View style={[styles.card, { marginBottom: 100 }]}> 
           <View style={styles.imageContainer}>
-            <ImageBackground source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAQO-MWTUNHOnJ3Y9auEb8WgatPo0yvaDSyXHvh30gzG2g8a5r5Ki4wpNjTCyrUuVP2iVqTrzauMjRd8uryFyMYP3x4oKoOa7tsR7zbltDMIJHG1JFaKDxy1m-ZjK0Xy8jDsJVU0IIa5VM-7WqsY_rttWVy1AMAO6t34LGwB2FfMt7nP-gKlXpOAVS9Ts_i9hPtoPAqjYShyeRixG5VzJM3M229l6oiARX6PUTazb7cm1T5VHTtBdw_7r72bdEB7yVczN9LjK87lSI' }} style={styles.cardImage} resizeMode="cover">
+            <ImageBackground source={require('../../assets/images/Text to Speech.jpg')} style={styles.cardImage} resizeMode="cover">
+              <View style={[styles.gradient, { backgroundColor: 'rgba(16,28,34,0.7)' }]} />
+            </ImageBackground>
+          </View>
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle}>Text to Speech</Text>
+            <Text style={styles.cardDescription}>Listen to spoken audio generated from your text.</Text>
+            <TouchableOpacity 
+              style={styles.secondaryButton}
+              onPress={() => router.push('/prototype/texttovoice')}
+            >
+              <Text style={styles.secondaryButtonText}>Select Mode</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={[styles.card, { marginBottom: 100 }]}> 
+          <View style={styles.imageContainer}>
+            <ImageBackground source={require('../../assets/images/Text to Sign.jpg')} style={styles.cardImage} resizeMode="cover">
               <View style={[styles.gradient, { backgroundColor: 'rgba(16,28,34,0.7)' }]} />
             </ImageBackground>
           </View>

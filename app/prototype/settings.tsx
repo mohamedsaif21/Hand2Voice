@@ -379,7 +379,7 @@ const SignLanguageAppSettings: React.FC<SettingsScreenProps> = ({ isDarkMode = t
           <View style={styles.nav}>
             <TouchableOpacity
               style={[styles.navItem, isDarkMode && styles.darkModeNavItem]}
-              onPress={() => router.push('/prototype/onboarding')}
+              onPress={() => router.push('/prototype/translation Mode')}
             >
               <MaterialIcons name="home" size={24} style={homeIconStyle} />
               <Text style={homeTextStyle}>Home</Text>
