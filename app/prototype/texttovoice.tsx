@@ -1,7 +1,7 @@
 import { Audio } from 'expo-av';
-import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import { Stack, useRouter } from 'expo-router';
+import * as Speech from 'expo-speech';
 import React, { useState } from 'react';
 import { ActivityIndicator, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -9,6 +9,7 @@ export default function TextToVoice() {
   const router = useRouter();
 
   const [textInput, setTextInput] = useState('');
+  // default target language set to Tamil for translation/tts
   const [currentLang, setCurrentLang] = useState<'ta' | 'hi' | 'ml'>('ta');
   const [translatedText, setTranslatedText] = useState('');
   const [originalText, setOriginalText] = useState('');
@@ -23,34 +24,58 @@ export default function TextToVoice() {
   const [isError, setIsError] = useState(false);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
 
+  // Only English example phrases are shown for quick testing
   const examplePhrases = {
-    ta: [
-      'வணக்கம், எப்படி இருக்கிறாய்?',
-      'ரயில் நிலையம் எங்கே இருக்கிறது?',
-      'எனக்கு பசிக்கிறது.',
-      'இது எவ்வளவு?',
-      'கழிவறை எங்கே?',
-      'எனக்கு தண்ணீர் வேண்டும்.',
-    ],
-    hi: [
-      'नमस्ते, आप कैसे हैं?',
-      'ट्रेन स्टेशन कहाँ है?',
-      'मुझे भूख लगी है।',
-      'यह कितने का है?',
-      'शौचालय कहाँ है?',
-      'मुझे पानी चाहिए।',
-    ],
-    ml: [
-      'നമസ്കാരം, സുഖമാണോ?',
-      'റെയിൽവേ സ്റ്റേഷൻ എവിടെയാണ്?',
-      'എനിക്ക് വിശക്കുന്നു.',
-      'ഇതിന് എത്ര രൂപയാണ്?',
-      'ടോയ്‌ലെറ്റ് എവിടെയാണ്?',
-      'എനിക്ക് വെള്ളം വേണം.',
+    en: [
+      'Hello, how are you?',
+      'Where is the train station?',
+      'I am hungry.',
+      'How much does this cost?',
+      'Where is the bathroom?',
+      'I need water.',
+      'Thank you very much.',
+      'Can you help me?',
+      'What time is it?',
+      'I love this place.',
     ],
   };
 
-  const translations: Record<'ta' | 'hi' | 'ml', Record<string, string>> = {
+  const translations: Record<'en' | 'ta' | 'hi' | 'ml', Record<string, string>> = {
+    en: {
+      hello: 'Hello',
+      hi: 'Hi',
+      'thank you': 'Thank you',
+      thanks: 'Thanks',
+      'how are you': 'How are you?',
+      'good morning': 'Good morning',
+      'good evening': 'Good evening',
+      'good night': 'Good night',
+      'see you later': 'See you later',
+      'nice to meet you': 'Nice to meet you',
+      water: 'Water',
+      food: 'Food',
+      help: 'Help',
+      yes: 'Yes',
+      no: 'No',
+      please: 'Please',
+      sorry: 'Sorry',
+      excuse: 'Excuse me',
+      bathroom: 'Bathroom',
+      station: 'Station',
+      hungry: 'Hungry',
+      tired: 'Tired',
+      happy: 'Happy',
+      sad: 'Sad',
+      love: 'Love',
+      time: 'Time',
+      cost: 'Cost',
+      price: 'Price',
+      where: 'Where',
+      what: 'What',
+      when: 'When',
+      how: 'How',
+      why: 'Why',
+    },
     ta: {
       hello: 'வணக்கம்',
       hi: 'வணக்கம்',
@@ -196,6 +221,31 @@ export default function TextToVoice() {
     }, 400);
   };
 
+  // Test connectivity to the API server
+  const testConnectivity = async () => {
+    const host = '10.98.146.16';
+    const port = '5000';
+    const apiPath = '/generate_audio_mp3';
+    const apiUrl = `http://${host}:${port}${apiPath}?text=வணக்கம்&lang_code=ta`;
+    
+    console.log('Testing connectivity to:', apiUrl);
+    
+    try {
+      // First, try a simple connectivity test with GET request
+      const testResponse = await fetch(apiUrl, {
+        method: 'GET',
+        // Add timeout
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      });
+      
+      console.log('Connectivity test response status:', testResponse.status);
+      return true;
+    } catch (error: any) {
+      console.error('Connectivity test failed:', error);
+      return false;
+    }
+  };
+
   const generateAudio = async () => {
     if (!originalText) {
       setStatus('Please analyze text first');
@@ -203,98 +253,54 @@ export default function TextToVoice() {
       return;
     }
     setIsGenerating(true);
-    setStatus('Generating audio...');
+    setStatus('Testing connectivity...');
     setIsError(false);
+    
     try {
-      // Determine endpoint based on platform/environment
-      // Strategy:
-      // 1. On web use window.location.hostname
-      // 2. If available, prefer Expo debuggerHost (it contains the dev machine IP in many setups)
-      // 3. Fall back to emulator/simulator shortcuts (10.0.2.2 for Android emulator, localhost for iOS simulator)
-      // 4. Last-resort fallback is a placeholder that the developer should replace with their LAN IP
-      const fallbackHost = 'REPLACE_WITH_YOUR_LAN_IP';
+      // Use the correct LAN address and port for the TTS API
+      const host = '10.98.146.16';
+      const port = '5000';
+      const apiPath = '/generate_audio_mp3';
 
-      const extractHostFromDebugger = (dbg?: string) => {
-        if (!dbg) return undefined;
-        // debuggerHost often looks like "192.168.1.10:19000" or "localhost:19000"
-        return dbg.split(':')[0];
-      };
-
-      let host: string | undefined;
-      try {
-        if (Platform.OS === 'web') {
-          // window may be undefined in some hosting environments, guard it
-          host = typeof window !== 'undefined' && window.location && window.location.hostname ? window.location.hostname : undefined;
-        }
-
-        // Try Expo Constants debuggerHost (works when running through Expo devtools)
-        const dbg = (Constants.manifest && (Constants.manifest as any).debuggerHost) || (Constants.expoConfig && (Constants.expoConfig as any).extra && (Constants.expoConfig as any).extra.debuggerHost);
-        const dbgHost = extractHostFromDebugger(dbg as string | undefined);
-        if (!host && dbgHost) host = dbgHost;
-
-        if (!host) {
-          host = Platform.select({ android: '10.0.2.2', ios: 'localhost', default: fallbackHost }) as string;
-        }
-      } catch (e) {
-        host = Platform.select({ android: '10.0.2.2', ios: 'localhost', default: fallbackHost }) as string;
-      }
-
-      console.log('Using host:', host);
-
-      // Use backend-generated audio (disable local test files)
-      const useLocalTestFile = false;
+      console.log('Using API endpoint:', `http://${host}:${port}${apiPath}`);
       
+      // Test connectivity first
+      const isConnected = await testConnectivity();
+      if (!isConnected) {
+        throw new Error('Cannot connect to the API server. Please check if the server is running on 10.98.146.16:5000');
+      }
+      
+      setStatus('Connected! Generating audio...');
+
       // Set up audio mode first
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         playsInSilentModeIOS: true,
         staysActiveInBackground: false,
       });
-      
-      if (useLocalTestFile) {
-        // Use pre-generated test files for quick testing
-        // We need to use static requires for each language since dynamic requires aren't supported
-        let audioSource;
-        if (currentLang === 'ta') {
-          audioSource = require('../../text to voices/test_output/output_ta.mp3');
-          console.log('Loading Tamil test audio file');
-        } else if (currentLang === 'hi') {
-          audioSource = require('../../text to voices/test_output/output_hi.mp3');
-          console.log('Loading Hindi test audio file');
-        } else if (currentLang === 'ml') {
-          audioSource = require('../../text to voices/test_output/output_ml.mp3');
-          console.log('Loading Malayalam test audio file');
-        }
-        
-        console.log('Creating audio from local file for language:', currentLang);
-        try {
-          const { sound: newSound } = await Audio.Sound.createAsync(
-            audioSource,
-            { shouldPlay: true },
-            (status) => console.log('Audio playback status:', status)
-          );
-          console.log('Audio created successfully');
-          setSound(newSound);
-          setStatus('Playing test audio file...');
-      } catch (error: any) {
-          console.error('Error playing local audio file:', error);
-          setStatus('Error playing audio: ' + error.message);
-          setIsError(true);
-        }
-      } else {
+      // NOTE: The project originally included code to require local test MP3s.
+      // Those `require(...)` calls are static and Metro will try to resolve them at bundle time.
+      // If those files are not present, Metro fails with "Unable to resolve module ... output_en.mp3".
+      // To avoid bundling errors we don't include static requires here; use the server flow below
+      // or add validated assets to the project and import them from a stable assets directory.
+
         // Ensure the URL is built correctly
   const textToUse = translatedText || originalText; // Use the translated text if available
 
   // Choose TTS language code expected by backend (if backend expects different codes, adjust map)
   const langCodeForBackend = (ttsLangMap as any)[currentLang] || currentLang;
 
-  const streamUrl = `http://${host}:5000/generate_audio_mp3?text=${encodeURIComponent(textToUse)}&lang_code=${encodeURIComponent(langCodeForBackend)}`;
-      console.log('Attempting to fetch audio from:', streamUrl);
+  // Use the correct API endpoint format with GET request and query parameters
+  const apiUrl = `http://${host}:${port}${apiPath}?text=${encodeURIComponent(textToUse)}&lang_code=${encodeURIComponent(langCodeForBackend)}`;
+      console.log('Attempting to fetch audio from:', apiUrl);
       
       if (Platform.OS === 'web') {
-        console.log('Using web audio playback method; doing a preflight fetch to validate the audio URL');
+        console.log('Using web audio playback method; sending GET request to generate audio');
         try {
-          const resp = await fetch(streamUrl, { method: 'GET', mode: 'cors' });
+          const resp = await fetch(apiUrl, { 
+            method: 'GET', 
+            mode: 'cors'
+          });
           if (!resp.ok) {
             const body = await resp.text().catch(() => '<no-body>');
             throw new Error(`Server responded with ${resp.status} ${resp.statusText}. Response body: ${body}`);
@@ -306,14 +312,18 @@ export default function TextToVoice() {
             throw new Error(`Unexpected content-type: ${contentType}. Body: ${body}`);
           }
 
-          // If preflight succeeds, hand the URL to expo-av
+          // Get the audio blob from the response
+          const blob = await resp.blob();
+          const audioUrl = URL.createObjectURL(blob);
+          
+          // Create sound from blob URL
           const { sound: newSound } = await Audio.Sound.createAsync(
-            { uri: streamUrl },
+            { uri: audioUrl },
             { shouldPlay: true }
           );
           setSound(newSound);
         } catch (webErr: any) {
-          console.error('Web audio preflight or playback error:', webErr);
+          console.error('Web audio generation or playback error:', webErr);
           throw webErr;
         }
       } else {
@@ -326,8 +336,21 @@ export default function TextToVoice() {
           console.warn('No writable FileSystem directory available; falling back to streaming the remote audio URL.');
           setStatus('No writable local directory; streaming audio from server...');
           try {
+            // For mobile without FileSystem, we need to use a different approach
+            // Since we can't directly stream GET response, we'll use the blob approach
+            const resp = await fetch(apiUrl, { 
+              method: 'GET'
+            });
+            
+            if (!resp.ok) {
+              throw new Error(`Server responded with ${resp.status} ${resp.statusText}`);
+            }
+            
+            const blob = await resp.blob();
+            const audioUrl = URL.createObjectURL(blob);
+            
             const { sound: newSound } = await Audio.Sound.createAsync(
-              { uri: streamUrl },
+              { uri: audioUrl },
               { shouldPlay: true },
               (status) => console.log('Playback status:', status)
             );
@@ -342,12 +365,27 @@ export default function TextToVoice() {
           console.log('Downloading to:', localUri);
           
           try {
-            const download = await FileSystem.downloadAsync(streamUrl, localUri);
-            console.log('Download result:', download);
+            // First, make the GET request to generate audio
+            const resp = await fetch(apiUrl, { 
+              method: 'GET'
+            });
             
-            if (download.status !== 200) {
-              throw new Error(`Download failed with status: ${download.status}`);
+            if (!resp.ok) {
+              throw new Error(`Server responded with ${resp.status} ${resp.statusText}`);
             }
+            
+            // Get the audio blob and save it to local file
+            const blob = await resp.blob();
+            const arrayBuffer = await blob.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+            
+            // Convert to base64 string for file writing
+            const base64String = btoa(String.fromCharCode(...uint8Array));
+            
+            // Write the audio data to local file
+            await FileSystem.writeAsStringAsync(localUri, base64String, {
+              encoding: 'base64' as any,
+            });
             
             // Check if file exists and has content
             const fileInfo = await FileSystem.getInfoAsync(localUri);
@@ -373,7 +411,6 @@ export default function TextToVoice() {
       }
         
         setStatus('Audio generated successfully! Playing...');
-      }
     } catch (error: any) {
       // Common causes:
       // - Backend not running or unreachable over LAN
@@ -382,9 +419,7 @@ export default function TextToVoice() {
       console.error('TTS Error:', error);
       
       const errorMessage = error.message || 'Unknown error';
-      const hint = Platform.OS === 'android'
-        ? 'If on Android emulator, ensure host is 10.0.2.2. On a physical device, use your machine\'s LAN IP.'
-        : 'If on iOS simulator, localhost works; on a physical device, use your machine\'s LAN IP.';
+      const hint = `Trying to connect to: http://10.98.146.16:5000/generate_audio_mp3. Check if the TTS server is running on port 5000.`;
       
       setStatus(`Network error: ${errorMessage}. ${hint}`);
       setIsError(true);
@@ -397,6 +432,12 @@ export default function TextToVoice() {
     setTextInput(phrase);
     setShowExamples(false);
   };
+
+  function speak(text: string, lang: 'en'|'ta'|'hi'|'ml') {
+    // try short code first; adjust if device needs region codes
+    const langCode = lang;
+    Speech.speak(text, { language: langCode });
+  }
 
   return (
     <>
@@ -440,24 +481,13 @@ export default function TextToVoice() {
               <View style={styles.examplesContainer}>
                 <Text style={styles.examplesTitle}>Example Phrases</Text>
                 <ScrollView style={styles.examplesList}>
-                  <Text style={styles.langHeader}>Tamil:</Text>
-                  {examplePhrases.ta.map((p, i) => (
-                    <TouchableOpacity key={`ta-${i}`} style={styles.exampleItem} onPress={() => selectExample(p)}>
+                  <Text style={styles.langHeader}>English:</Text>
+                  {examplePhrases.en.map((p, i) => (
+                    <TouchableOpacity key={`en-${i}`} style={styles.exampleItem} onPress={() => selectExample(p)}>
                       <Text>{p}</Text>
                     </TouchableOpacity>
                   ))}
-                  <Text style={styles.langHeader}>Hindi:</Text>
-                  {examplePhrases.hi.map((p, i) => (
-                    <TouchableOpacity key={`hi-${i}`} style={styles.exampleItem} onPress={() => selectExample(p)}>
-                      <Text>{p}</Text>
-                    </TouchableOpacity>
-                  ))}
-                  <Text style={styles.langHeader}>Malayalam:</Text>
-                  {examplePhrases.ml.map((p, i) => (
-                    <TouchableOpacity key={`ml-${i}`} style={styles.exampleItem} onPress={() => selectExample(p)}>
-                      <Text>{p}</Text>
-                    </TouchableOpacity>
-                  ))}
+                  {/* Only English examples shown for quick testing */}
                 </ScrollView>
               </View>
             )}

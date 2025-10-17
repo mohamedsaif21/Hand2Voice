@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, Button, Text, ActivityIndicator, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { Audio } from 'expo-av';
+import React, { useState } from 'react';
+import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-// Updated to use localhost for the Flask server
-const SERVER_URL = 'http://localhost:5000/generate_audio';
+// Updated to use LAN address for the Flask server
+const SERVER_URL = 'http://10.98.146.16:5000/generate_audio_mp3';
 
 const LANGUAGES = [
   { code: 'ta', name: 'Tamil' },

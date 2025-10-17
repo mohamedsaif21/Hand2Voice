@@ -3,7 +3,7 @@ import os
 import time
 
 # Server URL
-SERVER_URL = "http://localhost:5000/generate_audio"
+SERVER_URL = "http://10.98.146.16:5000/generate_audio_mp3"
 
 # Test data for different languages
 test_data = [
