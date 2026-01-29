@@ -59,7 +59,7 @@ Hand2Voice uniquely focuses on **Indian Sign Language (ISL)** and enables **real
     <td><img src="assets/images/page 1.jpeg" width="220"/></td>
     <td><img src="assets/images/signtotext.png" width="220"/></td>
     <td><img src="assets/images/page 2.jpeg" width="220"/></td>
-    <td><img src="assets/images/Text to Speech.jpg" width="220"/></td>
+    <td><img src="assets/images/page 3.jpg" width="220"/></td>
      <td><img src="assets/images/page 4.jpeg" width="220"/></td>
   </tr>
 </table>
