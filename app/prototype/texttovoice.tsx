@@ -3,10 +3,13 @@ import * as FileSystem from 'expo-file-system';
 import { Stack, useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 import React, { useState } from 'react';
-import { ActivityIndicator, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function TextToVoice() {
   const router = useRouter();
+
+  // WARNING: For production, move API keys to secure storage or server
+  const GOOGLE_API_KEY = 'AIzaSyCVMssVg4WqrrIvb84fBPJ4hxZYb_7Xa-A';
 
   const [textInput, setTextInput] = useState('');
   // default target language set to Tamil for translation/tts
@@ -247,181 +250,85 @@ export default function TextToVoice() {
   };
 
   const generateAudio = async () => {
-    if (!originalText) {
-      setStatus('Please analyze text first');
+    const textToUse = (translatedText || originalText || textInput || '').trim();
+    if (!textToUse) {
+      setStatus('Please enter or analyze some text first');
       setIsError(true);
       return;
     }
+    if (!GOOGLE_API_KEY) {
+      setStatus('Missing Google API key');
+      setIsError(true);
+      return;
+    }
+
     setIsGenerating(true);
-    setStatus('Testing connectivity...');
+    setStatus('Generating audio with Gemini TTS...');
     setIsError(false);
-    
+
     try {
-      // Use the correct LAN address and port for the TTS API
-      const host = '10.98.146.16';
-      const port = '5000';
-      const apiPath = '/generate_audio_mp3';
-
-      console.log('Using API endpoint:', `http://${host}:${port}${apiPath}`);
-      
-      // Test connectivity first
-      const isConnected = await testConnectivity();
-      if (!isConnected) {
-        throw new Error('Cannot connect to the API server. Please check if the server is running on 10.98.146.16:5000');
-      }
-      
-      setStatus('Connected! Generating audio...');
-
-      // Set up audio mode first
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
         playsInSilentModeIOS: true,
         staysActiveInBackground: false,
       });
-      // NOTE: The project originally included code to require local test MP3s.
-      // Those `require(...)` calls are static and Metro will try to resolve them at bundle time.
-      // If those files are not present, Metro fails with "Unable to resolve module ... output_en.mp3".
-      // To avoid bundling errors we don't include static requires here; use the server flow below
-      // or add validated assets to the project and import them from a stable assets directory.
 
-        // Ensure the URL is built correctly
-  const textToUse = translatedText || originalText; // Use the translated text if available
+      // Google Cloud Text-to-Speech v1 REST API
+      const endpoint = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(GOOGLE_API_KEY)}`;
 
-  // Choose TTS language code expected by backend (if backend expects different codes, adjust map)
-  const langCodeForBackend = (ttsLangMap as any)[currentLang] || currentLang;
+      // Map currentLang to BCP-47 language code
+      const languageCode = currentLang === 'ta' ? 'ta-IN' : currentLang === 'hi' ? 'hi-IN' : 'ml-IN';
+      // Using only languageCode lets Google pick a default voice for that locale
+      const payload = {
+        input: { text: textToUse },
+        voice: { languageCode },
+        audioConfig: { audioEncoding: 'MP3' },
+      } as const;
 
-  // Use the correct API endpoint format with GET request and query parameters
-  const apiUrl = `http://${host}:${port}${apiPath}?text=${encodeURIComponent(textToUse)}&lang_code=${encodeURIComponent(langCodeForBackend)}`;
-      console.log('Attempting to fetch audio from:', apiUrl);
-      
-      if (Platform.OS === 'web') {
-        console.log('Using web audio playback method; sending GET request to generate audio');
-        try {
-          const resp = await fetch(apiUrl, { 
-            method: 'GET', 
-            mode: 'cors'
-          });
-          if (!resp.ok) {
-            const body = await resp.text().catch(() => '<no-body>');
-            throw new Error(`Server responded with ${resp.status} ${resp.statusText}. Response body: ${body}`);
-          }
+      const resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
 
-          const contentType = resp.headers.get('content-type') || '';
-          if (!contentType.includes('audio') && !contentType.includes('mpeg') && !contentType.includes('mp3')) {
-            const body = await resp.text().catch(() => '<no-body>');
-            throw new Error(`Unexpected content-type: ${contentType}. Body: ${body}`);
-          }
-
-          // Get the audio blob from the response
-          const blob = await resp.blob();
-          const audioUrl = URL.createObjectURL(blob);
-          
-          // Create sound from blob URL
-          const { sound: newSound } = await Audio.Sound.createAsync(
-            { uri: audioUrl },
-            { shouldPlay: true }
-          );
-          setSound(newSound);
-        } catch (webErr: any) {
-          console.error('Web audio generation or playback error:', webErr);
-          throw webErr;
-        }
-      } else {
-        // Mobile/Simulator logic
-        const baseDir = (FileSystem as any).cacheDirectory || (FileSystem as any).documentDirectory || null;
-
-        if (!baseDir) {
-          // Some environments (custom runtimes / restricted sandboxes) may not expose a writable FileSystem.
-          // Instead of throwing, fall back to streaming the remote URL directly. expo-av can play remote URIs.
-          console.warn('No writable FileSystem directory available; falling back to streaming the remote audio URL.');
-          setStatus('No writable local directory; streaming audio from server...');
-          try {
-            // For mobile without FileSystem, we need to use a different approach
-            // Since we can't directly stream GET response, we'll use the blob approach
-            const resp = await fetch(apiUrl, { 
-              method: 'GET'
-            });
-            
-            if (!resp.ok) {
-              throw new Error(`Server responded with ${resp.status} ${resp.statusText}`);
-            }
-            
-            const blob = await resp.blob();
-            const audioUrl = URL.createObjectURL(blob);
-            
-            const { sound: newSound } = await Audio.Sound.createAsync(
-              { uri: audioUrl },
-              { shouldPlay: true },
-              (status) => console.log('Playback status:', status)
-            );
-            setSound(newSound);
-            console.log('Streaming playback started');
-          } catch (streamErr) {
-            console.error('Streaming playback error:', streamErr);
-            throw streamErr;
-          }
-        } else {
-          const localUri = `${baseDir}tts_${currentLang}_${Date.now()}.mp3`;
-          console.log('Downloading to:', localUri);
-          
-          try {
-            // First, make the GET request to generate audio
-            const resp = await fetch(apiUrl, { 
-              method: 'GET'
-            });
-            
-            if (!resp.ok) {
-              throw new Error(`Server responded with ${resp.status} ${resp.statusText}`);
-            }
-            
-            // Get the audio blob and save it to local file
-            const blob = await resp.blob();
-            const arrayBuffer = await blob.arrayBuffer();
-            const uint8Array = new Uint8Array(arrayBuffer);
-            
-            // Convert to base64 string for file writing
-            const base64String = btoa(String.fromCharCode(...uint8Array));
-            
-            // Write the audio data to local file
-            await FileSystem.writeAsStringAsync(localUri, base64String, {
-              encoding: 'base64' as any,
-            });
-            
-            // Check if file exists and has content
-            const fileInfo = await FileSystem.getInfoAsync(localUri);
-            console.log('File info:', fileInfo);
-            
-            if (!fileInfo.exists || fileInfo.size === 0) {
-              throw new Error('Downloaded file is empty or does not exist');
-            }
-            
-            console.log('Creating sound object from:', localUri);
-            const { sound: newSound } = await Audio.Sound.createAsync(
-              { uri: localUri },
-              { shouldPlay: true },
-              (status) => console.log('Playback status:', status)
-            );
-            setSound(newSound);
-            console.log('Sound created successfully');
-          } catch (downloadError) {
-            console.error('Download or playback error:', downloadError);
-            throw downloadError;
-          }
-        }
+      if (!resp.ok) {
+        const errText = await resp.text().catch(() => '<no-body>');
+        throw new Error(`Google TTS error ${resp.status}: ${errText}`);
       }
-        
-        setStatus('Audio generated successfully! Playing...');
-    } catch (error: any) {
-      // Common causes:
-      // - Backend not running or unreachable over LAN
-      // - Using HTTP on Android without proper network config
-      // - Wrong IP/host value
-      console.error('TTS Error:', error);
-      
-      const errorMessage = error.message || 'Unknown error';
-      const hint = `Trying to connect to: http://10.98.146.16:5000/generate_audio_mp3. Check if the TTS server is running on port 5000.`;
-      
-      setStatus(`Network error: ${errorMessage}. ${hint}`);
+
+      const json = await resp.json();
+      const base64Audio: string | undefined = json?.audioContent;
+      if (!base64Audio) throw new Error('Google TTS did not return audioContent');
+
+      const dir = (FileSystem as any).cacheDirectory || (FileSystem as any).documentDirectory || '';
+      if (!dir) {
+        throw new Error('No writable directory available');
+      }
+
+      const localUri = `${dir}gcloud_tts_${Date.now()}.mp3`;
+      await FileSystem.writeAsStringAsync(localUri, base64Audio, { encoding: (FileSystem as any).EncodingType?.Base64 || 'base64' as any });
+
+      const info = await FileSystem.getInfoAsync(localUri);
+      if (!info.exists || (info.size ?? 0) === 0) {
+        throw new Error('Saved audio file is empty or missing');
+      }
+
+      if (sound) {
+        try { await sound.stopAsync(); await sound.unloadAsync(); } catch {}
+      }
+
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: localUri },
+        { shouldPlay: true }
+      );
+      setSound(newSound);
+      setStatus('Playing Google TTS (auto voice)');
+      setIsError(false);
+    } catch (err: any) {
+      console.error('Google TTS error:', err);
+      setStatus('Google TTS error: ' + (err?.message || String(err)));
       setIsError(true);
     } finally {
       setIsGenerating(false);
@@ -438,6 +345,38 @@ export default function TextToVoice() {
     const langCode = lang;
     Speech.speak(text, { language: langCode });
   }
+
+  // Device TTS helper: plays the translated text (or original text) using expo-speech
+  const speakText = () => {
+    const textToSpeak = translatedText || originalText || textInput;
+    if (!textToSpeak || textToSpeak.trim().length === 0) {
+      setStatus('Please enter some text first');
+      setIsError(true);
+      return;
+    }
+
+    // map currentLang to a language code; backend uses short codes (ta, hi, ml)
+    const langCode = currentLang === 'ta' ? 'ta' : currentLang === 'hi' ? 'hi' : 'ml';
+
+    try {
+      Speech.speak(textToSpeak, { language: langCode, pitch: 1.0, rate: 1.0 });
+      setStatus('Playing via device TTS...');
+      setIsError(false);
+    } catch (err: any) {
+      console.error('Device TTS error:', err);
+      setStatus('Device TTS error: ' + (err?.message || String(err)));
+      setIsError(true);
+    }
+  };
+
+  const stopSpeech = () => {
+    try {
+      Speech.stop();
+      setStatus('Stopped device speech');
+    } catch (err: any) {
+      console.error('Stop speech error:', err);
+    }
+  };
 
   return (
     <>
@@ -536,6 +475,16 @@ export default function TextToVoice() {
                 {isGenerating ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryButtonText}>Generate & Play</Text>}
           </TouchableOpacity>
         )}
+
+            {/* Device TTS controls */}
+            <View style={{ marginTop: 8, flexDirection: 'row', justifyContent: 'space-between' }}>
+              <TouchableOpacity style={[styles.generateBtn, { flex: 1, marginRight: 8 }]} onPress={speakText}>
+                <Text style={styles.primaryButtonText}>🔊 Play (Device TTS)</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.generateBtn, { width: 90, paddingHorizontal: 8 }]} onPress={stopSpeech}>
+                <Text style={styles.primaryButtonText}>Stop</Text>
+              </TouchableOpacity>
+            </View>
 
             {status !== '' && (
               <Text style={[styles.status, isError && styles.statusError]}>{status}</Text>

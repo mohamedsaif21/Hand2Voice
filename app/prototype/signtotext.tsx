@@ -1,110 +1,139 @@
-import { CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTensorflowModel } from 'react-native-fast-tflite';
+import { Camera, useCameraDevice, useFrameProcessor } from 'react-native-vision-camera';
+import { Worklets } from 'react-native-worklets-core';
+import { useResizePlugin } from 'vision-camera-resize-plugin';
+
+// Sign language labels - adjust based on your model
+const LABELS = [
+  'Hello', 'Thank you', 'Yes', 'No', 'Please', 'Sorry', 'Help', 'Water', 'Food', 'Bathroom',
+  'Good morning', 'Good night', 'How are you', 'I love you', 'More', 'Done', 'Stop'
+];
 
 export default function SignToText() {
   const router = useRouter();
-  const [permission, requestPermission] = useCameraPermissions();
-  const [facing, setFacing] = useState<CameraType>('front');
-  const [isCameraActive, setIsCameraActive] = useState(false);
-  const cameraRef = useRef<CameraView>(null);
+  const [prediction, setPrediction] = useState('');
+  const device = useCameraDevice('front');
+  const resizePlugin = useResizePlugin();
+  const lastPredictionTime = useRef({ value: 0 });
+  const currentPrediction = useRef({ value: '' });
 
-  useEffect(() => {
-    if (permission && !permission.granted) {
-      requestPermission();
+  // Initialize model (adjust path as needed)
+  // Replace with your actual model path
+  const model = useTensorflowModel(
+    // Example: require('../../assets/model.tflite')
+    // Or: { url: 'https://your-server.com/model.tflite' }
+    { url: '' }, // Placeholder - update with your model path
+    'default'
+  );
+
+  const frameProcessor = useFrameProcessor((frame) => {
+    'worklet';
+    
+    if (model.state !== 'loaded' || !model.model) return;
+    
+    const now = Date.now();
+    // Throttle predictions to avoid overwhelming the UI
+    if (now - lastPredictionTime.current.value < 500) return;
+    lastPredictionTime.current.value = now;
+
+    try {
+      // Resize frame to 128x128 as expected by the model
+      const resized = resizePlugin.resize(frame, {
+        scale: {
+          width: 128,
+          height: 128,
+        },
+        pixelFormat: 'rgb',
+        dataType: 'float32',
+      });
+
+      // Run Inference
+      const output = model.model.runSync([resized] as any[]);
+
+      // Assuming output is a list of probabilities
+      const probabilities = output[0];
+
+      if (probabilities) {
+        let maxIndex = 0;
+        let maxVal = -1;
+        const probs = probabilities as any;
+        for (let i = 0; i < probs.length; i++) {
+          const val = Number(probs[i]);
+          if (val > maxVal) {
+            maxVal = val;
+            maxIndex = i;
+          }
+        }
+
+        if (maxIndex < LABELS.length) {
+          currentPrediction.current.value = LABELS[maxIndex];
+          Worklets.createRunOnJS(setPrediction)(LABELS[maxIndex]);
+        }
+      }
+    } catch (e) {
+      console.error("Inference error:", e);
     }
-  }, [permission, requestPermission]);
+  }, [model]);
 
-  const toggleCameraFacing = () => {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
-  };
+  if (device == null) return <View style={styles.center}><Text>No Device Found</Text></View>;
 
-  const startCamera = () => {
-    if (!permission?.granted) {
-      Alert.alert('Camera Permission', 'Camera permission is required to use this feature.');
-      return;
-    }
-    setIsCameraActive(true);
-  };
-
-  const stopCamera = () => {
-    setIsCameraActive(false);
-  };
   return (
     <View style={{ flex: 1, backgroundColor: '#f6f7f8' }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12 }}>
-        <TouchableOpacity 
-          style={{ width: 40, alignItems: 'flex-start' }}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
           onPress={() => router.push('/prototype/translation Mode')}
         >
           <Text style={{ fontSize: 24 }}>←</Text>
         </TouchableOpacity>
-        <Text style={{ flex: 1, textAlign: 'center', fontWeight: '700' }}>Sign Language Translation</Text>
+        <Text style={styles.headerTitle}>Sign Language Translation</Text>
         <View style={{ width: 48 }} />
       </View>
-      <View style={{ width: '100%', height: 220, backgroundColor: '#000', position: 'relative' }}>
-        {isCameraActive && permission?.granted ? (
-          <CameraView
-            ref={cameraRef}
-            style={{ flex: 1 }}
-            facing={facing}
-          >
-            <View style={{ 
-              position: 'absolute', 
-              top: 10, 
-              right: 10, 
-              backgroundColor: 'rgba(0,0,0,0.5)', 
-              borderRadius: 20, 
-              padding: 8 
-            }}>
-              <TouchableOpacity onPress={toggleCameraFacing}>
-                <Text style={{ color: 'white', fontSize: 12 }}>Flip</Text>
-              </TouchableOpacity>
-            </View>
-          </CameraView>
-        ) : (
-          <View style={{ 
-            flex: 1, 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            backgroundColor: '#f0f0f0' 
-          }}>
-            <TouchableOpacity 
-              onPress={startCamera}
-              style={{ 
-                backgroundColor: '#13a4ec', 
-                paddingHorizontal: 20, 
-                paddingVertical: 10, 
-                borderRadius: 20 
-              }}
-            >
-              <Text style={{ color: 'white', fontWeight: '600' }}>
-                {permission?.granted ? 'Start Camera' : 'Grant Camera Permission'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
+
+      <View style={styles.cameraContainer}>
+        <Camera
+          device={device}
+          isActive={true}
+          frameProcessor={frameProcessor}
+          style={StyleSheet.absoluteFill}
+        />
       </View>
-      <View style={{ padding: 12 }}>
-        <View style={{ backgroundColor: '#e6f6ff', padding: 8, borderRadius: 999, alignSelf: 'center', marginBottom: 8 }}>
-          <Text style={{ color: '#0ea5e9' }}>Translating...</Text>
+
+      <View style={styles.footer}>
+        <View style={styles.predictionBubble}>
+          <Text style={styles.predictionLabel}>Detected:</Text>
+          <Text style={styles.predictionText}>{prediction || 'No sign detected'}</Text>
         </View>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <Pressable 
-            style={{ flex: 1, height: 48, borderRadius: 999, backgroundColor: '#13a4ec', alignItems: 'center', justifyContent: 'center' }}
-            onPress={stopCamera}
+
+        <View style={styles.controls}>
+          <Pressable
+            style={styles.stopButton}
+            onPress={() => router.back()}
           >
-            <Text style={{ color: '#fff', fontWeight: '700' }}>Stop</Text>
-          </Pressable>
-          <Pressable 
-            style={{ flex: 1, height: 48, borderRadius: 999, borderWidth: 1, alignItems: 'center', justifyContent: 'center' }}
-            onPress={() => router.push('/prototype/settings')}
-          >
-            <Text>Settings</Text>
+            <Text style={styles.buttonText}>Stop</Text>
           </Pressable>
         </View>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  header: { flexDirection: 'row', alignItems: 'center', padding: 12 },
+  backButton: { width: 40, alignItems: 'flex-start' },
+  headerTitle: { flex: 1, textAlign: 'center', fontWeight: '700' },
+  cameraContainer: { width: '100%', height: 400, backgroundColor: '#000', position: 'relative' },
+  overlay: { position: 'absolute', bottom: 20, alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: 8, borderRadius: 8 },
+  overlayText: { color: '#fff' },
+  footer: { padding: 12, alignItems: 'center' },
+  predictionBubble: { backgroundColor: '#e6f6ff', padding: 16, borderRadius: 12, alignItems: 'center', marginBottom: 20, width: '80%' },
+  predictionLabel: { color: '#0ea5e9', fontSize: 14 },
+  predictionText: { color: '#0ea5e9', fontSize: 32, fontWeight: 'bold' },
+  controls: { flexDirection: 'row', gap: 8, width: '100%' },
+  stopButton: { flex: 1, height: 48, borderRadius: 999, backgroundColor: '#13a4ec', alignItems: 'center', justifyContent: 'center' },
+  buttonText: { color: '#fff', fontWeight: '700' }
+});
