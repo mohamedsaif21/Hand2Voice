@@ -1,82 +1,15 @@
 import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTensorflowModel } from 'react-native-fast-tflite';
-import { Camera, useCameraDevice, useFrameProcessor } from 'react-native-vision-camera';
-import { Worklets } from 'react-native-worklets-core';
-import { useResizePlugin } from 'vision-camera-resize-plugin';
+import { Camera, useCameraDevice } from 'react-native-vision-camera';
 
-// Sign language labels - adjust based on your model
-const LABELS = [
-  'Hello', 'Thank you', 'Yes', 'No', 'Please', 'Sorry', 'Help', 'Water', 'Food', 'Bathroom',
-  'Good morning', 'Good night', 'How are you', 'I love you', 'More', 'Done', 'Stop'
-];
 
 export default function SignToText() {
   const router = useRouter();
   const [prediction, setPrediction] = useState('');
   const device = useCameraDevice('front');
-  const resizePlugin = useResizePlugin();
-  const lastPredictionTime = useRef({ value: 0 });
-  const currentPrediction = useRef({ value: '' });
 
-  // Initialize model (adjust path as needed)
-  // Replace with your actual model path
-  const model = useTensorflowModel(
-    // Example: require('../../assets/model.tflite')
-    // Or: { url: 'https://your-server.com/model.tflite' }
-    { url: '' }, // Placeholder - update with your model path
-    'default'
-  );
 
-  const frameProcessor = useFrameProcessor((frame) => {
-    'worklet';
-    
-    if (model.state !== 'loaded' || !model.model) return;
-    
-    const now = Date.now();
-    // Throttle predictions to avoid overwhelming the UI
-    if (now - lastPredictionTime.current.value < 500) return;
-    lastPredictionTime.current.value = now;
-
-    try {
-      // Resize frame to 128x128 as expected by the model
-      const resized = resizePlugin.resize(frame, {
-        scale: {
-          width: 128,
-          height: 128,
-        },
-        pixelFormat: 'rgb',
-        dataType: 'float32',
-      });
-
-      // Run Inference
-      const output = model.model.runSync([resized] as any[]);
-
-      // Assuming output is a list of probabilities
-      const probabilities = output[0];
-
-      if (probabilities) {
-        let maxIndex = 0;
-        let maxVal = -1;
-        const probs = probabilities as any;
-        for (let i = 0; i < probs.length; i++) {
-          const val = Number(probs[i]);
-          if (val > maxVal) {
-            maxVal = val;
-            maxIndex = i;
-          }
-        }
-
-        if (maxIndex < LABELS.length) {
-          currentPrediction.current.value = LABELS[maxIndex];
-          Worklets.createRunOnJS(setPrediction)(LABELS[maxIndex]);
-        }
-      }
-    } catch (e) {
-      console.error("Inference error:", e);
-    }
-  }, [model]);
 
   if (device == null) return <View style={styles.center}><Text>No Device Found</Text></View>;
 
@@ -97,7 +30,6 @@ export default function SignToText() {
         <Camera
           device={device}
           isActive={true}
-          frameProcessor={frameProcessor}
           style={StyleSheet.absoluteFill}
         />
       </View>
