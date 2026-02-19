@@ -37,13 +37,6 @@
             "backgroundColor": "#000000"
           }
         }
-      ],
-      [
-        "react-native-fast-tflite",
-        {
-          "enableCoreMLDelegate": false,
-          "enableAndroidGpuLibraries": false
-        }
       ]
     ],
     "experiments": {
