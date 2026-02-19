@@ -53,12 +53,14 @@ Hand2Voice uniquely focuses on **Indian Sign Language (ISL)** and enables **real
     <td align="center"><b>Sign to Text</b></td>
     <td align="center"><b>Text to Sign</b></td>
     <td align="center"><b>Text to Voice</b></td>
+    <td align="center"><b>Learn the sign</b></td>
   </tr>
   <tr>
-    <td><img src="assets/images/onboarding.png" width="220"/></td>
+    <td><img src="assets/images/page 1.jpeg" width="220"/></td>
     <td><img src="assets/images/signtotext.png" width="220"/></td>
-    <td><img src="assets/images/texttosign.png" width="220"/></td>
-    <td><img src="assets/images/texttovoice.png" width="220"/></td>
+    <td><img src="assets/images/page 2.jpeg" width="220"/></td>
+    <td><img src="assets/images/page 3.jpeg" width="220"/></td>
+     <td><img src="assets/images/page 4.jpeg" width="220"/></td>
   </tr>
 </table>
 
@@ -104,7 +106,7 @@ Text / Voice / Sign Output
 
 ## 🎬 App Demo (Optional but Highly Recommended)
 
-![Hand2Voice Demo](assets/video/hand2voice-demo.gif)
+> Demo coming soon...
 
 ---
 
@@ -130,10 +132,4 @@ We welcome contributions! Feel free to submit pull requests or open issues.
 
 ---
 
-## 📄 License
-
-This project is open source and available under the MIT License.
-
----
-
-**Made with ❤️ by the Hand2Voice Team**
+**Made with  by the Hand2Voice Team**
