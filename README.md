@@ -68,24 +68,47 @@ Hand2Voice uniquely focuses on **Indian Sign Language (ISL)** and enables **real
 
 ## 📁 Project Structure
 
+Below is the recommended, easy-to-scan project layout for Hand2Voice with key files called out.
+
 ```
 Hand2Voice/
-├── app/                          → React Native (Expo) screens
-│   └── prototype/                → App features (Sign/Text/Voice)
-├── assets/                       → Images, videos, sign assets
+├── app/                          # React Native (Expo) app UI
+│   ├── _layout.tsx
+│   ├── index.tsx
+│   └── prototype/                # Feature screens (Sign ↔ Text, Text → Voice, etc.)
+│       ├── alphabet.tsx
+│       ├── signtotext.tsx
+│       ├── texttosign.tsx
+│       ├── texttovoice.tsx
+│       └── onboarding.tsx
+├── app-example/                   # Example app / demo screens and components
+│   ├── app/
+│   └── components/
+├── assets/                        # Static assets: images, alphabet GIFs, videos
 │   ├── images/
 │   ├── alphabet/
 │   └── video/
-├── SignLanguageDetectionUsingML/ → ML training & gesture detection
-│   ├── trainmodel.py
+├── SignLanguageDetectionUsingML/  # ML training & gesture detection
 │   ├── collectdata.py
+│   ├── trainmodel.py
 │   ├── model.h5
-│   └── MP_Data/
-├── model_conversion/             → Model to TFLite conversion
-├── text to voices/               → Text-to-Speech backend
-├── firebaseConfig.js             → Firebase configuration
-├── app.json                      → Expo configuration
-└── README.md
+│   └── MP_Data/                   # Raw MediaPipe / collected dataset
+├── model_conversion/              # Scripts for converting models to TFLite
+├── text to voices/                # Text-to-Speech backend (server / scripts)
+├── android/                       # Native Android project files (Gradle)
+│   ├── app/
+│   │   └── src/
+│   │       └── main/
+│   │           ├── AndroidManifest.xml
+│   │           └── java/com/anonymous/Hand2Voice/
+│   │               ├── MainActivity.kt
+│   │               └── MainApplication.kt
+│   └── gradle/
+├── firebaseConfig.js              # Firebase config and initialization
+├── app.json                       # Expo configuration
+├── package.json                   # JS dependencies & scripts
+├── tsconfig.json                  # TypeScript config
+└── README.md                      # This file
 ```
 
 ---

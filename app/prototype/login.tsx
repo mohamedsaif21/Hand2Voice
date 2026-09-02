@@ -17,7 +17,12 @@ export default function Login() {
         >
           <Text style={{ color: '#fff', fontWeight: '700' }}>Sign In</Text>
         </Pressable>
-  <Text style={{ textAlign: 'center', marginTop: 12, color: '#64748b' }}>Don't have an account? <TouchableOpacity onPress={() => router.push('/prototype/onboarding')}><Text style={{ color: '#0ea5e9' }}>Sign Up</Text></TouchableOpacity></Text>
+        <Text style={{ textAlign: 'center', marginTop: 12, color: '#64748b' }}>
+          Don&apos;t have an account?{' '}
+          <TouchableOpacity onPress={() => router.push('/prototype/onboarding')}>
+            <Text style={{ color: '#0ea5e9' }}>Sign Up</Text>
+          </TouchableOpacity>
+        </Text>
       </View>
     </View>
   );

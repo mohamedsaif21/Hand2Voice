@@ -15,6 +15,7 @@ export default function RootLayout() {
       <Stack.Screen name="prototype/alphabet" options={{ headerShown: false }} />
       <Stack.Screen name="prototype/login" options={{ headerShown: false }} />
       <Stack.Screen name="prototype/texttovoice" options={{ headerShown: false }} />
+      <Stack.Screen name="prototype/ConnectDevices" options={{ headerShown: false }} />
     </Stack>
   );
 }

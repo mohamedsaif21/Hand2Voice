@@ -430,7 +430,7 @@ const SignDetailsScreen = ({ isDarkMode = true }) => {
           <View>
             <Text style={signTitleStyle}>Hello</Text>
             <Text style={descStyle}>
-              A common greeting used to initiate conversation or acknowledge someone's presence.
+              A common greeting used to initiate conversation or acknowledge someone&apos;s presence.
             </Text>
           </View>
 

@@ -13,12 +13,6 @@ import {
   View,
 } from 'react-native';
 
-// Icon components - you'll need to install react-native-vector-icons or similar
-// For this example, I'm using placeholder View components
-const Icon = ({ name, size = 24, color = '#000' }: { name: string; size?: number; color?: string }) => (
-  <View style={{ width: size, height: size, backgroundColor: color, borderRadius: (size ?? 24) / 2 }} />
-);
-
 const ProfileScreen = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const colorScheme = useColorScheme();
@@ -185,7 +179,7 @@ const ProfileScreen = () => {
         {/* Profile Info */}
         <View style={styles.profileSection}>
           <Image
-            source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAfA5bLxb8HqN-UJZsS81AlLoMHSWyuKZ1EQvZzB4GFZU2Ju0OPxGpdYBBP8JsuG6yL9r-tqBJ0QJnP1By0CM22vIVH9Z7srSk1UMnHLhR7x2p4vvBEzstYi-cmxwQR8gsuZ2BaNZ62XQimxYX7Hs1iPdZ12ykSXsm6KPOtAnwYVw45V8urHydmolxunaGRn7_5TShQNXMpApEfCloxD4rnCWGqgE0sBLq2hDqrxOquwHwWoCVo4T3J3XYD5oGPYr8I5xbmOrsrsQI' }}
+            source={require('../../assets/images/Hand2Voice.png')}
             style={styles.avatar}
           />
           <View style={{ alignItems: 'center' }}>
@@ -232,6 +226,40 @@ const ProfileScreen = () => {
                 <Text style={styles.cardItemTitle}>Translation History</Text>
               </View>
               <Text style={{ fontSize: 20 }}>›</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Devices Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Devices</Text>
+          <View style={styles.card}>
+            <View style={[styles.cardItem, styles.cardItemBorder]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
+                <Text style={{ fontSize: 24 }}>👓</Text>
+                <View>
+                  <Text style={styles.cardItemTitle}>AR Glasses Connection</Text>
+                  <Text style={styles.cardItemSubtitle}>Not connected</Text>
+                </View>
+              </View>
+            </View>
+            <TouchableOpacity 
+              style={{ padding: 16 }}
+              onPress={() => router.push('/prototype/ConnectDevices')}
+            >
+              <View style={{
+                backgroundColor: colors.primary,
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                borderRadius: 6,
+                alignItems: 'center'
+              }}>
+                <Text style={{
+                  color: '#ffffff',
+                  fontSize: 16,
+                  fontWeight: '600'
+                }}>Connect Device</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
