@@ -9,8 +9,8 @@ export default function Onboarding() {
      
       <View style={{ flex: 1 }}>
         <Image
-          source={require('../../assets/images/Hand2voice.png')}
-          style={{ width: '100%', height: 360 }}
+          source={require('../../assets/images/Hand2Voice.png')}
+          style={{ width: '100%', height:640 }}
           resizeMode="cover"
         />
       </View>

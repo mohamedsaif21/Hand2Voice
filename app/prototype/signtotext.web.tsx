@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-nativ
 
 export default function SignToText() {
     const router = useRouter();
-    const [prediction, setPrediction] = useState('');
+    const [prediction] = useState('');
 
     return (
         <View style={{ flex: 1, backgroundColor: '#f6f7f8' }}>

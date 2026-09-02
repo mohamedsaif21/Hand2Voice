@@ -1,0 +1,17 @@
+# Hand2Voice backend dependencies
+# Install with:  pip install -r requirements.txt
+
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+pydantic==2.7.1
+
+mediapipe==0.10.14
+opencv-python-headless==4.9.0.80
+numpy==1.26.4
+
+# TensorFlow — choose ONE line depending on your machine:
+tensorflow==2.16.1          # CPU (works on all machines, recommended for dev)
+# tensorflow-gpu==2.16.1    # GPU — faster inference
+
+# Optional but helpful for debugging
+Pillow==10.3.0

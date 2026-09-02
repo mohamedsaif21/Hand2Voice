@@ -27,6 +27,12 @@
     "plugins": [
       "expo-router",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Hand2Voice to access your camera to translate sign language."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/Hand2voice.png",
