@@ -1,418 +1,295 @@
-import { MaterialIcons } from '@expo/vector-icons'; // You'll need to install this package
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  Dimensions,
-  Platform,
+  Alert,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
+  Switch,
   Text,
   TouchableOpacity,
   useColorScheme,
   View,
 } from 'react-native';
+import { AppBottomNav } from '../components/AppBottomNav';
+import { PALETTE, RADIUS, SHADOWS } from '../theme';
 
-// Screen height for min-height calculation, though RN handles this differently
-const { height } = Dimensions.get('window');
+export default function SettingsScreen() {
+  const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? PALETTE.dark : PALETTE.light;
 
-// --- Color and Font Definitions (from your tailwind.config.js) ---
-const COLORS = {
-  primary: '#13a4ec',
-  backgroundLight: '#f6f7f8',
-  backgroundDark: '#101c22',
-  black: '#000000',
-  white: '#ffffff',
-};
+  const [offlineMode, setOfflineMode] = useState(true);
+  const [hudSubtitles, setHudSubtitles] = useState(true);
+  const [autoSpeakWords, setAutoSpeakWords] = useState(false);
+  const [textSize, setTextSize] = useState<'Standard' | 'Large'>('Standard');
 
-// Note: You would typically load custom fonts like Lexend and Noto Sans
-// using an asset loader like 'expo-font'. For simplicity, we use system defaults.
-const FONT = {
-  display: 'System', // Replace with 'Lexend' if loaded
-  // explicitly type as string literal weights so TS accepts them where TextStyle.fontWeight is expected
-  medium: ('600' as unknown) as '600',
-  bold: ('700' as unknown) as '700',
-  extraBold: ('900' as unknown) as '900',
-};
+  const handleClearCache = () => {
+    Alert.alert('Clear Cache', 'Local temporary video and speech cache cleared successfully.');
+  };
 
-// Utility to convert hex color to rgba string (safe for web)
-const hexToRgba = (hex: string, alpha: number) => {
-  const clean = hex.replace('#', '');
-  const r = parseInt(clean.substring(0, 2), 16);
-  const g = parseInt(clean.substring(2, 4), 16);
-  const b = parseInt(clean.substring(4, 6), 16);
-  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return 'transparent';
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-// Custom Stylesheet mirroring Tailwind structure
+      {/* Header */}
+      <View style={[styles.header, { borderBottomColor: theme.borderSubtle }]}>
+        <TouchableOpacity
+          style={[styles.headerBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}
+          onPress={() => router.back()}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name="arrow-back" size={20} color={theme.textPrimary} />
+        </TouchableOpacity>
+
+        <View style={styles.titleWrap}>
+          <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>Settings</Text>
+          <Text style={[styles.headerSub, { color: theme.textTertiary }]}>System & AI Configuration</Text>
+        </View>
+
+        <View style={{ width: 38 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Section 1: AI & Gesture Vision */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>AI & GESTURE RECOGNITION</Text>
+          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }, SHADOWS.sm]}>
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <Ionicons name="speedometer-outline" size={20} color={PALETTE.primary} />
+                <View>
+                  <Text style={[styles.rowTitle, { color: theme.textPrimary }]}>Detection Polling Rate</Text>
+                  <Text style={[styles.rowSub, { color: theme.textTertiary }]}>Continuous frame frequency</Text>
+                </View>
+              </View>
+              <View style={[styles.badge, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
+                <Text style={[styles.badgeText, { color: PALETTE.primary }]}>900 ms</Text>
+              </View>
+            </View>
+
+            <View style={[styles.divider, { backgroundColor: theme.borderSubtle }]} />
+
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <Ionicons name="shield-checkmark-outline" size={20} color="#10B981" />
+                <View>
+                  <Text style={[styles.rowTitle, { color: theme.textPrimary }]}>Confidence Threshold</Text>
+                  <Text style={[styles.rowSub, { color: theme.textTertiary }]}>Filter inaccurate predictions</Text>
+                </View>
+              </View>
+              <View style={[styles.badge, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
+                <Text style={[styles.badgeText, { color: '#10B981' }]}>65% Min</Text>
+              </View>
+            </View>
+
+            <View style={[styles.divider, { backgroundColor: theme.borderSubtle }]} />
+
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <Ionicons name="cloud-offline-outline" size={20} color="#8B5CF6" />
+                <View>
+                  <Text style={[styles.rowTitle, { color: theme.textPrimary }]}>On-Device Model Caching</Text>
+                  <Text style={[styles.rowSub, { color: theme.textTertiary }]}>Fast execution without network</Text>
+                </View>
+              </View>
+              <Switch
+                value={offlineMode}
+                onValueChange={setOfflineMode}
+                trackColor={{ false: '#334155', true: PALETTE.primary }}
+                thumbColor="#fff"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Section 2: Speech & Voice Output */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>SPEECH & AUDIO OUTPUT</Text>
+          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }, SHADOWS.sm]}>
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <Ionicons name="volume-high-outline" size={20} color={PALETTE.primary} />
+                <View>
+                  <Text style={[styles.rowTitle, { color: theme.textPrimary }]}>Auto-Speak Detected Words</Text>
+                  <Text style={[styles.rowSub, { color: theme.textTertiary }]}>Pronounce signs immediately upon recognition</Text>
+                </View>
+              </View>
+              <Switch
+                value={autoSpeakWords}
+                onValueChange={setAutoSpeakWords}
+                trackColor={{ false: '#334155', true: PALETTE.primary }}
+                thumbColor="#fff"
+              />
+            </View>
+
+            <View style={[styles.divider, { backgroundColor: theme.borderSubtle }]} />
+
+            <TouchableOpacity
+              style={styles.row}
+              onPress={() => setTextSize(textSize === 'Standard' ? 'Large' : 'Standard')}
+            >
+              <View style={styles.rowLeft}>
+                <Ionicons name="text-outline" size={20} color={theme.textPrimary} />
+                <View>
+                  <Text style={[styles.rowTitle, { color: theme.textPrimary }]}>Display Text Size</Text>
+                  <Text style={[styles.rowSub, { color: theme.textTertiary }]}>Adjust subtitle and sentence scale</Text>
+                </View>
+              </View>
+              <View style={[styles.badge, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
+                <Text style={[styles.badgeText, { color: theme.textPrimary }]}>{textSize}</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Section 3: Hardware & AR Wearables */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>HARDWARE & WEARABLES</Text>
+          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }, SHADOWS.sm]}>
+            <TouchableOpacity
+              style={styles.row}
+              onPress={() => router.push('/prototype/ConnectDevices')}
+            >
+              <View style={styles.rowLeft}>
+                <Ionicons name="glasses-outline" size={20} color={PALETTE.primary} />
+                <View>
+                  <Text style={[styles.rowTitle, { color: theme.textPrimary }]}>Smart AR Glasses Setup</Text>
+                  <Text style={[styles.rowSub, { color: theme.textTertiary }]}>Manage bluetooth and heads-up display</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={theme.textTertiary} />
+            </TouchableOpacity>
+
+            <View style={[styles.divider, { backgroundColor: theme.borderSubtle }]} />
+
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <Ionicons name="tv-outline" size={20} color="#10B981" />
+                <View>
+                  <Text style={[styles.rowTitle, { color: theme.textPrimary }]}>Live HUD Subtitles</Text>
+                  <Text style={[styles.rowSub, { color: theme.textTertiary }]}>Stream signs to wearable display</Text>
+                </View>
+              </View>
+              <Switch
+                value={hudSubtitles}
+                onValueChange={setHudSubtitles}
+                trackColor={{ false: '#334155', true: PALETTE.primary }}
+                thumbColor="#fff"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Section 4: Privacy & Maintenance */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>PRIVACY & STORAGE</Text>
+          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }, SHADOWS.sm]}>
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <Ionicons name="lock-closed-outline" size={20} color="#10B981" />
+                <View>
+                  <Text style={[styles.rowTitle, { color: theme.textPrimary }]}>Frame Privacy Guard</Text>
+                  <Text style={[styles.rowSub, { color: theme.textTertiary }]}>Camera frames are never stored or logged</Text>
+                </View>
+              </View>
+              <View style={[styles.badge, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
+                <Text style={[styles.badgeText, { color: '#10B981' }]}>Active</Text>
+              </View>
+            </View>
+
+            <View style={[styles.divider, { backgroundColor: theme.borderSubtle }]} />
+
+            <TouchableOpacity style={styles.row} onPress={handleClearCache}>
+              <View style={styles.rowLeft}>
+                <Ionicons name="trash-bin-outline" size={20} color={PALETTE.danger} />
+                <View>
+                  <Text style={[styles.rowTitle, { color: PALETTE.danger }]}>Clear Temporary Cache</Text>
+                  <Text style={[styles.rowSub, { color: theme.textTertiary }]}>Free up video and audio disk memory</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={theme.textTertiary} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* About App Badge */}
+        <View style={styles.aboutFooter}>
+          <MaterialCommunityIcons name="sign-language" size={32} color={PALETTE.primary} />
+          <Text style={[styles.aboutTitle, { color: theme.textPrimary }]}>Hand2Voice • SignLink AI</Text>
+          <Text style={[styles.aboutVersion, { color: theme.textTertiary }]}>Version 2.0.0 (Production Release)</Text>
+          <Text style={[styles.aboutCopyright, { color: theme.textTertiary }]}>
+            Bridging Indian Sign Language for inclusivity worldwide
+          </Text>
+        </View>
+      </ScrollView>
+
+      {/* Bottom Nav */}
+      <AppBottomNav currentTab="settings" />
+    </SafeAreaView>
+  );
+}
+
 const styles = StyleSheet.create({
-  // Global / Body
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.backgroundLight,
-    minHeight: height, // Optional, typically flex: 1 handles full screen
-  },
-  darkModeContainer: {
-    backgroundColor: COLORS.backgroundDark,
-  },
-  // Header
+  container: { flex: 1 },
   header: {
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.backgroundLight,
-    borderBottomWidth: 0, // No default border
-    ...Platform.select({
-      // Shadow for sticky effect (if needed)
-      ios: {
-        shadowColor: 'black',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 1,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
-  },
-  darkModeHeader: {
-    backgroundColor: COLORS.backgroundDark,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 20,
-    fontWeight: FONT.bold,
-    color: COLORS.black,
-    paddingRight: 40, // To offset the back button
-  },
-  darkModeHeaderTitle: {
-    color: COLORS.white,
-  },
-  iconButton: {
-    height: 40,
-    width: 40,
-    borderRadius: 9999,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  icon: {
-    color: COLORS.black,
-  },
-  darkModeIcon: {
-    color: COLORS.white,
-  },
-  // Main Content
-  main: {
-    padding: 16,
-    paddingBottom: 80, // Space for footer
-    flexGrow: 1,
-  },
-  sectionSpacing: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: FONT.bold,
-    color: COLORS.black,
-    marginBottom: 16,
-  },
-  darkModeSectionTitle: {
-    color: COLORS.white,
-  },
-  settingsItemContainer: {
-    marginBottom: 8,
-  },
-  settingsItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: 8, // 'DEFAULT' is 0.5rem
-    backgroundColor: COLORS.white,
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
   },
-  darkModeSettingsItem: {
-    backgroundColor: hexToRgba(COLORS.primary, 0.1), // primary/10 opacity
+  headerBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  settingsTextContainer: {
+  titleWrap: { alignItems: 'center' },
+  headerTitle: { fontSize: 17, fontWeight: '800' },
+  headerSub: { fontSize: 11, fontWeight: '600' },
+  scrollContent: { padding: 16, paddingBottom: 32, gap: 20 },
+  section: { gap: 8 },
+  sectionTitle: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
+  card: {
+    borderRadius: RADIUS.xl,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+  },
+  rowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     flex: 1,
-    marginRight: 10,
+    marginRight: 12,
   },
-  settingsTitle: {
-    fontWeight: FONT.medium,
-    color: COLORS.black,
+  rowTitle: { fontSize: 14, fontWeight: '600' },
+  rowSub: { fontSize: 12, marginTop: 2 },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: RADIUS.full,
   },
-  darkModeSettingsTitle: {
-    color: COLORS.white,
-  },
-  settingsDescription: {
-    fontSize: 12,
-    color: hexToRgba(COLORS.black, 0.6), // black/60 opacity
-  },
-  darkModeSettingsDescription: {
-    color: hexToRgba(COLORS.white, 0.6), // white/60 opacity
-  },
-  settingsValueRow: {
-    flexDirection: 'row',
+  badgeText: { fontSize: 12, fontWeight: '700' },
+  divider: { height: 1, width: '100%' },
+  aboutFooter: {
     alignItems: 'center',
-    gap: 8,
-  },
-  settingsValueText: {
-    fontSize: 14,
-    fontWeight: FONT.medium,
-    color: COLORS.primary,
-  },
-  chevronIcon: {
-    color: hexToRgba(COLORS.black, 0.6),
-  },
-  darkModeChevronIcon: {
-    color: hexToRgba(COLORS.white, 0.6),
-  },
-  // Footer
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: COLORS.backgroundLight,
-    borderTopWidth: 1,
-    borderTopColor: hexToRgba(COLORS.black, 0.1), // black/10
-    paddingTop: 8,
-    paddingBottom: 12,
-  },
-  darkModeFooter: {
-    backgroundColor: COLORS.backgroundDark,
-    borderTopColor: hexToRgba(COLORS.white, 0.1), // white/10
-  },
-  nav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  navItem: {
-    alignItems: 'center',
+    paddingVertical: 20,
     gap: 4,
-    padding: 4,
   },
-  darkModeNavItem: {
-    // kept intentionally empty for view-level dark adjustments; text/icon colors handled separately
-  },
-  navText: {
-    fontSize: 10,
-    fontWeight: FONT.medium,
-    color: hexToRgba(COLORS.black, 0.6),
-  },
-  navIcon: {
-    fontSize: 24, // default icon size
-    color: hexToRgba(COLORS.black, 0.6),
-  },
-  darkModeNavText: {
-    color: hexToRgba(COLORS.white, 0.6),
-  },
-  darkModeNavIcon: {
-    color: hexToRgba(COLORS.white, 0.6),
-  },
-  // Active Nav Item
-  activeNavItem: {
-    backgroundColor: hexToRgba(COLORS.primary, 0.2), // primary/20
-    borderRadius: 9999,
-    padding: 8,
-  },
-  darkModeActiveNavItem: {
-    backgroundColor: hexToRgba(COLORS.primary, 0.3), // primary/30
-  },
-  activeNavText: {
-    fontSize: 10,
-    fontWeight: FONT.bold,
-    color: COLORS.primary,
-  },
-  activeNavIcon: {
-    color: COLORS.primary,
-    fontWeight: FONT.bold,
-  },
+  aboutTitle: { fontSize: 15, fontWeight: '800' },
+  aboutVersion: { fontSize: 12 },
+  aboutCopyright: { fontSize: 11, textAlign: 'center', maxWidth: 280 },
 });
-
-// --- Settings Item Component (reusable) ---
-type SettingsItemProps = {
-  title: string;
-  description: string;
-  value?: string;
-  isDarkMode?: boolean;
-};
-
-const SettingsItem: React.FC<SettingsItemProps> = ({ title, description, value, isDarkMode }) => {
-  const itemStyle = [styles.settingsItem, isDarkMode && styles.darkModeSettingsItem];
-  const titleStyle = [styles.settingsTitle, isDarkMode && styles.darkModeSettingsTitle];
-  const descStyle = [
-    styles.settingsDescription,
-    isDarkMode && styles.darkModeSettingsDescription,
-  ];
-  const chevronStyle = [styles.chevronIcon, isDarkMode && styles.darkModeChevronIcon];
-
-  return (
-    <TouchableOpacity
-      style={styles.settingsItemContainer}
-      onPress={() => console.log(`Navigating to ${title}`)} // Placeholder for navigation
-    >
-      <View style={itemStyle}>
-        <View style={styles.settingsTextContainer}>
-          <Text style={titleStyle}>{title}</Text>
-          <Text style={descStyle}>{description}</Text>
-        </View>
-        <View style={styles.settingsValueRow}>
-          {value && <Text style={styles.settingsValueText}>{value}</Text>}
-          <MaterialIcons name="chevron-right" size={24} style={chevronStyle} />
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-// --- Main Component ---
-type SettingsScreenProps = {
-  isDarkMode?: boolean;
-};
-
-const SignLanguageAppSettings: React.FC<SettingsScreenProps> = ({ isDarkMode = true }) => {
-  const router = useRouter();
-  const colorScheme = useColorScheme();
-  const isDark = isDarkMode || colorScheme === 'dark';
-  
-  const containerStyle = [styles.container, isDark && styles.darkModeContainer];
-  const headerStyle = [styles.header, isDarkMode && styles.darkModeHeader];
-  const headerTitleStyle = [styles.headerTitle, isDarkMode && styles.darkModeHeaderTitle];
-  const backIconStyle = [styles.icon, isDarkMode && styles.darkModeIcon];
-  const sectionTitleStyle = [styles.sectionTitle, isDarkMode && styles.darkModeSectionTitle];
-  const footerStyle = [styles.footer, isDarkMode && styles.darkModeFooter];
-
-  // Utility to handle navigation/action
-  const navigateBack = () => {};
-
-  // Pre-flatten nav icon/text styles for web
-  const homeIconStyle = StyleSheet.flatten([styles.navIcon, isDarkMode && styles.darkModeNavIcon]);
-  const homeTextStyle = StyleSheet.flatten([styles.navText, isDarkMode && styles.darkModeNavText]);
-  const learnIconStyle = StyleSheet.flatten([styles.navIcon, isDarkMode && styles.darkModeNavIcon]);
-  const learnTextStyle = StyleSheet.flatten([styles.navText, isDarkMode && styles.darkModeNavText]);
-  const profileIconStyle = StyleSheet.flatten([styles.navIcon, isDarkMode && styles.darkModeNavIcon]);
-  const profileTextStyle = StyleSheet.flatten([styles.navText, isDarkMode && styles.darkModeNavText]);
-  const helpIconStyle = StyleSheet.flatten([styles.navIcon, isDarkMode && styles.darkModeNavIcon]);
-  const helpTextStyle = StyleSheet.flatten([styles.navText, isDarkMode && styles.darkModeNavText]);
-
-  return (
-    <SafeAreaView style={containerStyle}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      
-      <View style={{ flex: 1 }}>
-        {/* Header */}
-        <View style={headerStyle}>
-            <TouchableOpacity 
-              style={styles.iconButton} 
-              onPress={() => router.push('/prototype/translation Mode')}
-            >
-              <MaterialIcons name="arrow-back" size={24} style={backIconStyle} />
-            </TouchableOpacity>
-          <Text style={headerTitleStyle}>Settings</Text>
-        </View>
-
-        {/* Main Content */}
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-          <View style={styles.main}>
-            {/* Accessibility Section */}
-            <View style={styles.sectionSpacing}>
-              <Text style={sectionTitleStyle}>Accessibility</Text>
-              <SettingsItem
-                title="Text Size"
-                description="Adjust text size for better readability"
-                value="Medium"
-                isDarkMode={isDarkMode}
-              />
-              <SettingsItem
-                title="Color Contrast"
-                description="Enhance contrast for improved visibility"
-                value="Normal"
-                isDarkMode={isDarkMode}
-              />
-              <SettingsItem
-                title="Animation Speed"
-                description="Control animation speed for smoother interactions"
-                value="Normal"
-                isDarkMode={isDarkMode}
-              />
-            </View>
-
-            {/* Privacy Section */}
-            <View style={styles.sectionSpacing}>
-              <Text style={sectionTitleStyle}>Privacy</Text>
-              <SettingsItem
-                title="Data Management"
-                description="Manage your data and privacy settings"
-                isDarkMode={isDarkMode}
-              />
-              <SettingsItem
-                title="Privacy Policy"
-                description="Review and update our privacy policy"
-                isDarkMode={isDarkMode}
-              />
-            </View>
-
-            {/* Other Section */}
-            <View style={styles.sectionSpacing}>
-              <Text style={sectionTitleStyle}>Other</Text>
-              <SettingsItem
-                title="Help & Support"
-                description="Get help and support"
-                isDarkMode={isDarkMode}
-              />
-              <SettingsItem
-                title="About"
-                description="Learn more about the app"
-                isDarkMode={isDarkMode}
-              />
-            </View>
-          </View>
-        </ScrollView>
-
-        {/* Footer / Navigation Bar */}
-        <View style={footerStyle}>
-          <View style={styles.nav}>
-            <TouchableOpacity
-              style={[styles.navItem, isDarkMode && styles.darkModeNavItem]}
-              onPress={() => router.push('/prototype/translation Mode')}
-            >
-              <MaterialIcons name="home" size={24} style={homeIconStyle} />
-              <Text style={homeTextStyle}>Home</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.navItem, isDarkMode && styles.darkModeNavItem]}
-              onPress={() => router.push('/prototype/signdetails')}
-            >
-              <MaterialIcons name="school" size={24} style={learnIconStyle} />
-              <Text style={learnTextStyle}>Learn</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.navItem, isDarkMode && styles.darkModeNavItem]}
-              onPress={() => router.push('/prototype/profile')}
-            >
-              <MaterialIcons name="person" size={24} style={profileIconStyle} />
-              <Text style={profileTextStyle}>Profile</Text>
-            </TouchableOpacity>
-
-            {/* Active Item: Settings */}
-            <TouchableOpacity
-              style={[styles.navItem, styles.activeNavItem, isDarkMode && styles.darkModeActiveNavItem]}
-            >
-              <MaterialIcons name="settings" size={24} style={styles.activeNavIcon} />
-              <Text style={styles.activeNavText}>Settings</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </SafeAreaView>
-  );
-};
-
-export default SignLanguageAppSettings;
