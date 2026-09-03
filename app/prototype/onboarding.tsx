@@ -2,7 +2,6 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Dimensions,
   Image,
   SafeAreaView,
   StatusBar,
@@ -13,8 +12,6 @@ import {
   View,
 } from 'react-native';
 import { PALETTE, RADIUS, SHADOWS } from '../theme';
-
-const { width } = Dimensions.get('window');
 
 interface Slide {
   id: string;
