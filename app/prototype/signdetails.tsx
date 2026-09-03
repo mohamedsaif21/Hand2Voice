@@ -1,538 +1,371 @@
-import {
-  Ionicons,
-  MaterialCommunityIcons,
-  MaterialIcons
-} from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { ResizeMode, Video } from 'expo-av';
 import { useRouter } from 'expo-router';
-import React from 'react';
-import type { StyleProp, TextStyle, ViewStyle } from 'react-native';
+import * as Speech from 'expo-speech';
+import React, { useRef, useState } from 'react';
 import {
   Dimensions,
-  ImageBackground,
-  Platform,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
+  useColorScheme,
   View,
 } from 'react-native';
+import { AppBottomNav } from '../components/AppBottomNav';
+import { PALETTE, RADIUS, SHADOWS } from '../theme';
 
-// --- Color and Font Definitions (from your tailwind.config.js) ---
-const COLORS = {
-  primary: '#13a4ec',
-  backgroundLight: '#f6f7f8',
-  backgroundDark: '#101c22',
-  black: '#000000',
-  white: '#ffffff',
-  zinc50: '#fafafa',
-  zinc100: '#f4f4f5',
-  zinc200: '#e4e4e7',
-  zinc400: '#a1a1aa',
-  zinc500: '#71717a',
-  zinc600: '#52525b',
-  zinc800: '#27272a',
-  zinc900: '#18181b',
-};
-
-const FONT = {
-  display: 'System', // Replace with 'Lexend' if loaded
-  medium: '600' as const,
-  bold: '700' as const,
-  extraBold: '900' as const,
-};
-
-// Utility to convert hex color to rgba string (safe for web)
-const hexToRgba = (hex: string, alpha: number) => {
-  const clean = hex.replace('#', '');
-  const r = parseInt(clean.substring(0, 2), 16);
-  const g = parseInt(clean.substring(2, 4), 16);
-  const b = parseInt(clean.substring(4, 6), 16);
-  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return 'transparent';
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-
-// Get screen width for calculating aspect ratio
 const { width } = Dimensions.get('window');
-const VIDEO_HEIGHT = width * (9 / 16); // aspect-video = 16/9
 
-// Custom Stylesheet mirroring Tailwind structure
-const styles = StyleSheet.create({
-  // Global / Body
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.backgroundLight,
-  },
-  darkModeContainer: {
-    backgroundColor: COLORS.backgroundDark,
-  },
-  textLight: {
-    color: COLORS.zinc900,
-  },
-  textDark: {
-    color: COLORS.zinc100,
-  },
+interface PhraseItem {
+  id: string;
+  english: string;
+  hindi: string;
+  tamil: string;
+}
 
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    // RN doesn't have native backdrop-blur, but we can approximate the sticky effect
-    backgroundColor: COLORS.backgroundLight,
-    ...Platform.select({
-      ios: {
-        shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 1,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
-  },
-  darkModeHeader: {
-    backgroundColor: COLORS.backgroundDark,
-    // Dark mode specific border/shadow approximation
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.zinc800,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 18, // text-lg
-    fontWeight: FONT.bold,
-  },
-  placeholderSpacing: {
-    width: 32, // w-8
-  },
+const COMMON_PHRASES: PhraseItem[] = [
+  { id: '1', english: 'Hello, how are you?', hindi: 'नमस्ते, आप कैसे हैं?', tamil: 'வணக்கம், எப்படி இருக்கிறீர்கள்?' },
+  { id: '2', english: 'Hello, nice to meet you.', hindi: 'नमस्ते, आपसे मिलकर खुशी हुई।', tamil: 'வணக்கம், உங்களை சந்தித்ததில் மகிழ்ச்சி.' },
+  { id: '3', english: 'Good morning, everyone.', hindi: 'शुभ प्रभात आप सभी को।', tamil: 'அனைவருக்கும் காலை வணக்கம்.' },
+];
 
-  // Main Content: Video
-  videoContainer: {
-    width: '100%',
-    height: VIDEO_HEIGHT,
-    backgroundColor: COLORS.zinc900,
-  },
-  videoOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)', // bg-black/20
-  },
-  playButton: {
-    height: 64, // size-16
-    width: 64, // size-16
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 9999,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // bg-black/50
-    // Simplified backdrop-blur for RN
-  },
-  playIcon: {
-    fontSize: 32,
-    color: COLORS.white,
-  },
-
-  // Content Details Section
-  detailsSection: {
-    padding: 24, // p-6
-    paddingBottom: 0,
-    gap: 24, // space-y-6
-  },
-  signTitle: {
-    fontSize: 30, // text-3xl
-    fontWeight: FONT.bold,
-  },
-  signDescription: {
-    marginTop: 8, // mt-2
-    color: COLORS.zinc600,
-  },
-  darkModeSignDescription: {
-    color: COLORS.zinc400,
-  },
-  sectionHeading: {
-    fontSize: 20, // text-xl
-    fontWeight: FONT.bold,
-  },
-
-  // Pronunciation
-  pronunciationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  pronunciationSpeakerButton: {
-    padding: 8, // p-2
-    borderRadius: 9999,
-    backgroundColor: hexToRgba(COLORS.primary, 0.2), // primary/20
-    color: COLORS.primary,
-  },
-  pronunciationBox: {
-    backgroundColor: COLORS.backgroundLight,
-    padding: 16, // p-4
-    borderRadius: 8, // rounded-lg
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    // Shadow approximation
-    ...Platform.select({
-      ios: {
-        shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
-  },
-  darkModePronunciationBox: {
-    backgroundColor: COLORS.backgroundDark,
-    // Dark mode specific shadow approximation
-    ...Platform.select({
-      ios: {
-        shadowColor: COLORS.white,
-        shadowOpacity: 0.2,
-      },
-    }),
-  },
-  ipaText: {
-    fontSize: 16, // text-lg
-    fontWeight: FONT.medium,
-    color: COLORS.zinc800,
-  },
-  darkModeIpaText: {
-    color: COLORS.zinc200,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8, // space-x-2
-  },
-  actionButtonBase: {
-    padding: 8,
-    borderRadius: 9999,
-    // no text color for View style; icon colors are set on the icon components
-  },
-  darkModeActionButtonBase: {
-    // no text color for View style; icon colors are set on the icon components
-  },
-  primaryActionButton: {
-    backgroundColor: COLORS.primary,
-    color: COLORS.white,
-  },
-
-  // Common Phrases
-  phraseList: {
-    gap: 12, // space-y-3
-  },
-  phraseItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16, // gap-4
-    backgroundColor: COLORS.backgroundLight,
-    padding: 16,
-    borderRadius: 8,
-    // Shadow styles are the same as pronunciationBox
-    ...Platform.select({
-      ios: {
-        shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 5,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
-  },
-  darkModePhraseItem: {
-    backgroundColor: COLORS.backgroundDark,
-    // Dark mode specific shadow approximation
-    ...Platform.select({
-      ios: {
-        shadowColor: COLORS.white,
-        shadowOpacity: 0.2,
-      },
-    }),
-  },
-  phraseText: {
-    flex: 1,
-    color: COLORS.zinc800,
-  },
-  darkModePhraseText: {
-    color: COLORS.zinc200,
-  },
-  phraseForwardButton: {
-    padding: 8,
-    marginRight: -8, // -mr-2
-    color: COLORS.zinc500,
-  },
-  darkModePhraseForwardButton: {
-    color: COLORS.zinc400,
-  },
-
-  // Alphabet Button
-  alphabetButtonWrapper: {
-    paddingHorizontal: 24, // Matches detailsSection padding
-    paddingBottom: 24,
-    paddingTop: 8, // pt-2
-  },
-  alphabetButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    gap: 12, // gap-3
-    paddingVertical: 16, // py-4
-    paddingHorizontal: 24, // px-6
-    backgroundColor: COLORS.primary,
-    borderRadius: 12, // rounded-xl
-    // Shadow approximation
-    ...Platform.select({
-      ios: {
-        shadowColor: COLORS.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  alphabetButtonText: {
-    fontSize: 18, // text-lg
-    fontWeight: FONT.bold,
-    color: COLORS.white,
-  },
-
-  // Footer
-  footer: {
-    // RN doesn't have native backdrop-blur
-    backgroundColor: COLORS.backgroundLight,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.zinc200,
-    paddingVertical: 8, // Adjusted from p-2 to match visual style better
-  },
-  darkModeFooter: {
-    backgroundColor: COLORS.backgroundDark,
-    borderTopColor: COLORS.zinc800,
-  },
-  nav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  navItem: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4, // gap-1
-    padding: 8, // p-2
-    width: 80, // w-20
-  },
-  navText: {
-    fontSize: 10, // text-xs
-    fontWeight: FONT.medium,
-  },
-  navIcon: {
-    fontSize: 24,
-  },
-  // Inactive
-  navInactive: {
-    color: COLORS.zinc500,
-  },
-  darkModeNavInactive: {
-    color: COLORS.zinc400,
-  },
-  // Active
-  navActive: {
-    color: COLORS.primary,
-    backgroundColor: hexToRgba(COLORS.primary, 0.1), // primary/10
-    borderRadius: 8, // rounded-lg
-  },
-  navActiveText: {
-    fontWeight: FONT.bold,
-  },
-});
-
-// --- Settings Item Component (reusable) ---
-const PhraseItem = ({ text, isDarkMode }: { text: string; isDarkMode: boolean }) => {
-  const itemStyle = [styles.phraseItem, isDarkMode && styles.darkModePhraseItem];
-  const textStyle = [styles.phraseText, isDarkMode && styles.darkModePhraseText];
-  const buttonStyle = [
-    styles.phraseForwardButton,
-    isDarkMode && styles.darkModePhraseForwardButton,
-  ];
-
-  return (
-    <View style={itemStyle}>
-      <Text style={textStyle}>{text}</Text>
-      <TouchableOpacity onPress={() => console.log(`Practice phrase: ${text}`)}>
-        {/* flatten the style array for the icon to avoid passing arrays to react-native-web DOM styles */}
-        <MaterialIcons name="chevron-right" size={24} style={StyleSheet.flatten(buttonStyle) as any} />
-      </TouchableOpacity>
-    </View>
-  );
-};
-
-// --- Main Component ---
-const SignDetailsScreen = ({ isDarkMode = true }) => {
+export default function SignDetailsScreen() {
   const router = useRouter();
-  const containerStyle: StyleProp<ViewStyle> = [styles.container, isDarkMode && styles.darkModeContainer];
-  const headerStyle: StyleProp<ViewStyle> = [styles.header, isDarkMode && styles.darkModeHeader];
-  const titleStyle: StyleProp<TextStyle> = [styles.headerTitle, isDarkMode ? styles.textDark : styles.textLight];
-  const signTitleStyle: StyleProp<TextStyle> = [styles.signTitle, isDarkMode ? styles.textDark : { color: COLORS.zinc50 }];
-  const descStyle: StyleProp<TextStyle> = [styles.signDescription, isDarkMode && styles.darkModeSignDescription];
-  const headingStyle: StyleProp<TextStyle> = [styles.sectionHeading, isDarkMode ? styles.textDark : styles.textLight];
-  const ipaTextStyle: StyleProp<TextStyle> = [styles.ipaText, isDarkMode && styles.darkModeIpaText];
-  const boxStyle: StyleProp<ViewStyle> = [styles.pronunciationBox, isDarkMode && styles.darkModePronunciationBox];
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const theme = isDark ? PALETTE.dark : PALETTE.light;
 
-  const footerStyle: StyleProp<ViewStyle> = [styles.footer, isDarkMode && styles.darkModeFooter];
-  const navInactiveStyle: StyleProp<TextStyle> = [styles.navInactive, isDarkMode && styles.darkModeNavInactive];
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [markedDone, setMarkedDone] = useState(false);
+  const videoRef = useRef<Video | null>(null);
 
-  // Pre-flatten icon styles to avoid passing arrays into icon components (react-native-web)
-  const homeIconStyle = StyleSheet.flatten([styles.navIcon, navInactiveStyle]) as any;
-  const learnIconStyle = StyleSheet.flatten([styles.navIcon, { color: COLORS.primary }]) as any;
-  const profileIconStyle = StyleSheet.flatten([styles.navIcon, navInactiveStyle]) as any;
-  const settingsIconStyle = StyleSheet.flatten([styles.navIcon, navInactiveStyle]) as any;
+  const speakAudio = (text: string) => {
+    Speech.speak(text, { language: 'en-IN' });
+  };
 
   return (
-    <SafeAreaView style={containerStyle}>
-      {/* Header */}
-      <View style={headerStyle}>
-         
-        <Text style={titleStyle}>   Sign Details</Text>
-        <View style={styles.placeholderSpacing} />
-      </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-      <ScrollView style={{ flex: 1 }}>
-        {/* Video Player */}
-        <View style={styles.videoContainer}>
-          <ImageBackground
-            source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDbAhL133U1gSgjVhl3DtUSK2y94wqpYC-w0Z3Bd3oLQq1BLbqTBMOBYqMiI4swwFemfu5aULX3dCNufxtlKY_3K1YxQyLwNO-bFufNtJvTp2ce9MtNKMcYtNVI8DkitjWHXuA3ImiJ8RnVtdZdthqTzDJQOQO0D1W_pxX5O5IHSbB358IWxM3vlPpoSMxoDf2e0BnS1I8GAecGeL-rkSMSop-VpQQR0XF293ilXd048fFR0ztcloMGzrgzsX3IVwrv3aIVxiI0R7s' }}
-            style={{ flex: 1 }}
-            resizeMode="cover"
-          >
-            <View style={styles.videoOverlay}>
-              <TouchableOpacity style={styles.playButton} onPress={() => console.log('Play Video')}>
-                {/* Play Icon (Replaced SVG) */}
-                <MaterialIcons name="play-arrow" size={32} style={styles.playIcon} />
-              </TouchableOpacity>
-            </View>
-          </ImageBackground>
+      {/* Header */}
+      <View style={[styles.header, { borderBottomColor: theme.borderSubtle }]}>
+        <TouchableOpacity
+          style={[styles.headerBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}
+          onPress={() => router.back()}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name="arrow-back" size={20} color={theme.textPrimary} />
+        </TouchableOpacity>
+
+        <View style={styles.titleWrap}>
+          <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>Sign Dictionary</Text>
+          <Text style={[styles.headerSub, { color: theme.textTertiary }]}>Indian Sign Language Masterclass</Text>
         </View>
 
-        {/* Content Details */}
-        <View style={styles.detailsSection}>
-          <View>
-            <Text style={signTitleStyle}>Hello</Text>
-            <Text style={descStyle}>
-              A common greeting used to initiate conversation or acknowledge someone&apos;s presence.
-            </Text>
+        <TouchableOpacity
+          style={[styles.headerBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }]}
+          onPress={() => router.push('/prototype/alphabet')}
+        >
+          <MaterialCommunityIcons name="alphabetical" size={22} color={PALETTE.primary} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Video Player Card */}
+        <View style={[styles.videoCard, { backgroundColor: theme.card, borderColor: theme.border }, SHADOWS.md]}>
+          <View style={styles.videoHeader}>
+            <View style={styles.videoBadge}>
+              <View style={[styles.liveDot, { backgroundColor: '#10B981' }]} />
+              <Text style={styles.videoBadgeText}>HD SIGN DEMO</Text>
+            </View>
+            <Text style={[styles.videoCategory, { color: theme.textTertiary }]}>Category: Greetings</Text>
           </View>
 
-          {/* Pronunciation */}
-          <View style={{ gap: 16 }}>
-            <View style={styles.pronunciationRow}>
-              <Text style={headingStyle}>Pronunciation</Text>
-              <TouchableOpacity
-                style={styles.pronunciationSpeakerButton}
-                onPress={() => console.log('Play full word audio')}
-              >
-                {/* Speaker Icon (Replaced SVG with Ionicons) */}
-                <Ionicons name="volume-medium" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={boxStyle}>
-              <Text style={ipaTextStyle}>/həˈloʊ/</Text>
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                  style={[styles.actionButtonBase, isDarkMode && styles.darkModeActionButtonBase]}
-                  onPress={() => console.log('Delete/Review pronunciation')}
-                >
-                  {/* Review/X Icon (Replaced SVG with MaterialIcons) */}
-                  <MaterialIcons name="undo" size={20} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.actionButtonBase, styles.primaryActionButton]}
-                  onPress={() => console.log('Mark correct/done')}
-                >
-                  {/* Checkmark/Done Icon (Replaced SVG with MaterialIcons) */}
-                  <MaterialIcons name="check" size={20} color={COLORS.white} />
-                </TouchableOpacity>
-              </View>
-            </View>
+          <View style={styles.videoContainer}>
+            <Video
+              ref={videoRef}
+              source={require('../../assets/video/hello.mp4')}
+              style={StyleSheet.absoluteFill}
+              resizeMode={ResizeMode.CONTAIN}
+              isLooping
+              shouldPlay={isPlaying}
+              useNativeControls
+            />
           </View>
+        </View>
 
-          {/* Common Phrases */}
-          <View style={{ gap: 16 }}>
-            <Text style={headingStyle}>Common Phrases</Text>
-            <View style={styles.phraseList}>
-              <PhraseItem text="Hello, how are you?" isDarkMode={isDarkMode} />
-              <PhraseItem text="Hello, nice to meet you." isDarkMode={isDarkMode} />
+        {/* Sign Header Details */}
+        <View style={[styles.signMetaCard, { backgroundColor: theme.card, borderColor: theme.border }, SHADOWS.sm]}>
+          <View style={styles.signMetaTop}>
+            <View>
+              <Text style={[styles.signTitle, { color: theme.textPrimary }]}>Hello</Text>
+              <Text style={[styles.signSub, { color: theme.textSecondary }]}>
+                Universal greeting used to initiate conversation and acknowledge presence.
+              </Text>
             </View>
-          </View>
 
-          {/* Sign Language Alphabet Button */}
-          <View style={styles.alphabetButtonWrapper}>
             <TouchableOpacity
-              style={styles.alphabetButton}
-              onPress={() => router.push('/prototype/alphabet')}
+              style={[
+                styles.doneBadgeBtn,
+                { backgroundColor: markedDone ? '#10B981' : isDark ? 'rgba(255,255,255,0.06)' : '#F1F5F9' },
+              ]}
+              onPress={() => setMarkedDone(!markedDone)}
             >
-              {/* Hand/Alphabet Icon (Replaced SVG with a custom approximation) */}
-              <MaterialCommunityIcons name="sign-language" size={24} color={COLORS.white} />
-              <Text style={styles.alphabetButtonText}>
-                Sign Language Alphabets
+              <Ionicons name={markedDone ? 'checkmark-circle' : 'checkmark-circle-outline'} size={20} color={markedDone ? '#fff' : PALETTE.primary} />
+              <Text style={[styles.doneBadgeText, { color: markedDone ? '#fff' : theme.textPrimary }]}>
+                {markedDone ? 'Mastered' : 'Mark Done'}
               </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Pronunciation Row */}
+          <View style={[styles.pronounceBox, { backgroundColor: isDark ? 'rgba(14, 165, 233, 0.08)' : '#F0F9FF' }]}>
+            <View style={styles.pronounceLeft}>
+              <Text style={[styles.pronounceLabel, { color: theme.textTertiary }]}>PHONETIC IPA</Text>
+              <Text style={[styles.pronounceIpa, { color: PALETTE.primary }]}>/həˈloʊ/</Text>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.listenBtn, { backgroundColor: PALETTE.primary }]}
+              onPress={() => speakAudio('Hello')}
+            >
+              <Ionicons name="volume-medium" size={18} color="#fff" />
+              <Text style={styles.listenBtnText}>Listen</Text>
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* Step-by-Step Execution Guide */}
+        <View style={[styles.guideCard, { backgroundColor: theme.card, borderColor: theme.border }, SHADOWS.sm]}>
+          <Text style={[styles.cardSectionTitle, { color: theme.textPrimary }]}>Step-by-Step Execution</Text>
+
+          <View style={styles.stepsList}>
+            <View style={styles.stepItem}>
+              <View style={[styles.stepNum, { backgroundColor: PALETTE.primary }]}>
+                <Text style={styles.stepNumText}>1</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.stepTitle, { color: theme.textPrimary }]}>Initial Hand Posture</Text>
+                <Text style={[styles.stepDesc, { color: theme.textSecondary }]}>
+                  Raise your dominant hand near temple or ear level with fingers fully extended and palm facing forward.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.stepItem}>
+              <View style={[styles.stepNum, { backgroundColor: '#8B5CF6' }]}>
+                <Text style={styles.stepNumText}>2</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.stepTitle, { color: theme.textPrimary }]}>Oscillation Movement</Text>
+                <Text style={[styles.stepDesc, { color: theme.textSecondary }]}>
+                  Gently sweep hand laterally side-to-side in a small arc twice with relaxed wrist motion.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.stepItem}>
+              <View style={[styles.stepNum, { backgroundColor: '#10B981' }]}>
+                <Text style={styles.stepNumText}>3</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.stepTitle, { color: theme.textPrimary }]}>Facial Expression</Text>
+                <Text style={[styles.stepDesc, { color: theme.textSecondary }]}>
+                  Pair the sign with direct, warm eye contact and a gentle smile to convey openness.
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Common Conversational Phrases */}
+        <View style={[styles.guideCard, { backgroundColor: theme.card, borderColor: theme.border }, SHADOWS.sm]}>
+          <Text style={[styles.cardSectionTitle, { color: theme.textPrimary }]}>Conversational Examples</Text>
+
+          <View style={styles.phrasesList}>
+            {COMMON_PHRASES.map((phrase) => (
+              <View
+                key={phrase.id}
+                style={[
+                  styles.phraseRow,
+                  { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#F8FAFC', borderColor: theme.borderSubtle },
+                ]}
+              >
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={[styles.phraseEng, { color: theme.textPrimary }]}>{phrase.english}</Text>
+                  <Text style={[styles.phraseRegional, { color: theme.textTertiary }]}>
+                    {phrase.hindi} • {phrase.tamil}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.audioIconBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
+                  onPress={() => speakAudio(phrase.english)}
+                >
+                  <Ionicons name="volume-medium" size={18} color={PALETTE.primary} />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Link to Full Alphabet Practice */}
+        <TouchableOpacity
+          style={[styles.alphabetBanner, SHADOWS.md]}
+          onPress={() => router.push('/prototype/alphabet')}
+          activeOpacity={0.85}
+        >
+          <MaterialCommunityIcons name="alphabetical" size={28} color="#fff" />
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={styles.bannerTitle}>Explore Full Sign Alphabet</Text>
+            <Text style={styles.bannerSub}>Master Indian Sign Language letters A to Z with mnemonics</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#fff" />
+        </TouchableOpacity>
       </ScrollView>
 
-      {/* Footer / Navigation Bar */}
-      <View style={footerStyle}>
-        <View style={styles.nav}>
-          {/* Home */}
-          <TouchableOpacity 
-            style={styles.navItem}
-            onPress={() => router.push('/prototype/translation Mode')}
-          >
-            <MaterialIcons name="home" style={homeIconStyle} />
-            <Text style={[styles.navText, navInactiveStyle]}>Home</Text>
-          </TouchableOpacity>
-
-          {/* Learn (Active) */}
-          <TouchableOpacity style={[styles.navItem, styles.navActive]}>
-            <MaterialIcons name="school" style={learnIconStyle} />
-            <Text style={[styles.navText, styles.navActiveText]}>Learn</Text>
-          </TouchableOpacity>
-
-          {/* Profile */}
-          <TouchableOpacity 
-            style={styles.navItem}
-            onPress={() => router.push('/prototype/profile')}
-          >
-            <MaterialIcons name="person" style={profileIconStyle} />
-            <Text style={[styles.navText, navInactiveStyle]}>Profile</Text>
-          </TouchableOpacity>
-
-          {/* Settings */}
-          <TouchableOpacity 
-            style={styles.navItem}
-            onPress={() => router.push('/prototype/settings')}
-          >
-            <MaterialIcons name="settings" style={settingsIconStyle} />
-            <Text style={[styles.navText, navInactiveStyle]}>Settings</Text>
-          </TouchableOpacity>
-        </View>
-        {/* RN handles safe area padding naturally, so no need for h-safe-area-bottom div */}
-      </View>
+      {/* Bottom Nav */}
+      <AppBottomNav currentTab="learn" />
     </SafeAreaView>
   );
-};
+}
 
-export default SignDetailsScreen;
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  headerBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titleWrap: { alignItems: 'center' },
+  headerTitle: { fontSize: 17, fontWeight: '800' },
+  headerSub: { fontSize: 11, fontWeight: '600' },
+  scrollContent: { padding: 16, paddingBottom: 32, gap: 16 },
+  videoCard: {
+    borderRadius: RADIUS.xl,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  videoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  videoBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  liveDot: { width: 6, height: 6, borderRadius: 3 },
+  videoBadgeText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.6, color: '#10B981' },
+  videoCategory: { fontSize: 12, fontWeight: '600' },
+  videoContainer: {
+    width: '100%',
+    aspectRatio: 16 / 10,
+    backgroundColor: '#000',
+  },
+  signMetaCard: {
+    borderRadius: RADIUS.xl,
+    borderWidth: 1,
+    padding: 16,
+    gap: 14,
+  },
+  signMetaTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  signTitle: { fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
+  signSub: { fontSize: 13, marginTop: 4, lineHeight: 18, maxWidth: 220 },
+  doneBadgeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: RADIUS.full,
+  },
+  doneBadgeText: { fontSize: 12, fontWeight: '700' },
+  pronounceBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderRadius: RADIUS.lg,
+  },
+  pronounceLeft: { gap: 2 },
+  pronounceLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 0.8 },
+  pronounceIpa: { fontSize: 16, fontWeight: '700' },
+  listenBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: RADIUS.full,
+  },
+  listenBtnText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  guideCard: {
+    borderRadius: RADIUS.xl,
+    borderWidth: 1,
+    padding: 16,
+    gap: 14,
+  },
+  cardSectionTitle: { fontSize: 16, fontWeight: '800', letterSpacing: -0.3 },
+  stepsList: { gap: 14 },
+  stepItem: { flexDirection: 'row', gap: 12 },
+  stepNum: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  stepNumText: { color: '#fff', fontSize: 12, fontWeight: '800' },
+  stepTitle: { fontSize: 14, fontWeight: '700' },
+  stepDesc: { fontSize: 12, marginTop: 2, lineHeight: 17 },
+  phrasesList: { gap: 10 },
+  phraseRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+  },
+  phraseEng: { fontSize: 14, fontWeight: '600' },
+  phraseRegional: { fontSize: 11, marginTop: 2 },
+  audioIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  alphabetBanner: {
+    backgroundColor: PALETTE.primary,
+    borderRadius: RADIUS.xl,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  bannerTitle: { color: '#fff', fontSize: 15, fontWeight: '800' },
+  bannerSub: { color: 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 2 },
+});
