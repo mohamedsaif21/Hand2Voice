@@ -5,7 +5,6 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
   SafeAreaView,
   ScrollView,
   StatusBar,
