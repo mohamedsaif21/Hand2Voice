@@ -3,14 +3,16 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Image,
-  SafeAreaView,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   useColorScheme,
+  useWindowDimensions,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PALETTE, RADIUS, SHADOWS } from '../theme';
 
 interface Slide {
@@ -60,10 +62,14 @@ const SLIDES: Slide[] = [
 export default function Onboarding() {
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const { height: screenHeight } = useWindowDimensions();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? PALETTE.dark : PALETTE.light;
 
   const [activeSlide, setActiveSlide] = useState(0);
+
+  const isCompactScreen = screenHeight < 720;
+  const imageHeight = isCompactScreen ? 160 : Math.min(screenHeight * 0.26, 230);
 
   const handleNext = () => {
     if (activeSlide < SLIDES.length - 1) {
@@ -100,24 +106,29 @@ export default function Onboarding() {
         </TouchableOpacity>
       </View>
 
-      {/* Hero Visual Card */}
-      <View style={styles.heroWrapper}>
-        <View style={[styles.heroCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          {/* Visual Showcase Image with Overlay */}
-          <View style={styles.imageContainer}>
-            <Image
-              source={require('../../assets/images/Hand2Voice.png')}
-              style={styles.heroImage}
-              resizeMode="cover"
-            />
-            <View style={[styles.imageGradientOverlay, { backgroundColor: isDark ? 'rgba(11, 15, 23, 0.4)' : 'rgba(255, 255, 255, 0.1)' }]} />
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
+        {/* Hero Visual Card */}
+        <View style={styles.heroWrapper}>
+          <View style={[styles.heroCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            {/* Visual Showcase Image with Overlay */}
+            <View style={[styles.imageContainer, { height: imageHeight }]}>
+              <Image
+                source={require('../../assets/images/Hand2Voice.png')}
+                style={styles.heroImage}
+                resizeMode="cover"
+              />
+              <View style={[styles.imageGradientOverlay, { backgroundColor: isDark ? 'rgba(11, 15, 23, 0.4)' : 'rgba(255, 255, 255, 0.1)' }]} />
 
-            {/* Floating Tag Badge */}
-            <View style={[styles.tagBadge, { backgroundColor: current.tagColor }]}>
-              <Ionicons name={current.icon} size={14} color="#fff" style={{ marginRight: 6 }} />
-              <Text style={styles.tagText}>{current.tag}</Text>
+              {/* Floating Tag Badge */}
+              <View style={[styles.tagBadge, { backgroundColor: current.tagColor }]}>
+                <Ionicons name={current.icon} size={14} color="#fff" style={{ marginRight: 6 }} />
+                <Text style={styles.tagText}>{current.tag}</Text>
+              </View>
             </View>
-          </View>
 
           {/* Slide Pill Chips */}
           <View style={styles.pillRow}>
@@ -193,7 +204,7 @@ export default function Onboarding() {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -201,7 +212,11 @@ export default function Onboarding() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'space-between',
+    paddingBottom: 24,
   },
   topBar: {
     flexDirection: 'row',
