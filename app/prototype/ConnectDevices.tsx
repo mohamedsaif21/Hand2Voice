@@ -5,7 +5,6 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -14,6 +13,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PALETTE, RADIUS, SHADOWS } from '../theme';
 
 interface DeviceItem {
