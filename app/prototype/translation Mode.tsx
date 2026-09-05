@@ -23,7 +23,7 @@ export default function TranslationModeScreen() {
   const theme = isDark ? PALETTE.dark : PALETTE.light;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* Top Header */}
@@ -81,7 +81,7 @@ export default function TranslationModeScreen() {
             onPress={() => router.push('/prototype/alphabet')}
           >
             <Ionicons name="apps" size={16} color={PALETTE.primary} />
-            <Text style={[styles.quickPillText, { color: theme.textPrimary }]}>A-Z Alphabet</Text>
+            <Text numberOfLines={1} style={[styles.quickPillText, { color: theme.textPrimary }]}>A-Z Alphabet</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -89,7 +89,7 @@ export default function TranslationModeScreen() {
             onPress={() => router.push('/prototype/history')}
           >
             <Ionicons name="time" size={16} color="#8B5CF6" />
-            <Text style={[styles.quickPillText, { color: theme.textPrimary }]}>History</Text>
+            <Text numberOfLines={1} style={[styles.quickPillText, { color: theme.textPrimary }]}>History</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -97,7 +97,7 @@ export default function TranslationModeScreen() {
             onPress={() => router.push('/prototype/ConnectDevices')}
           >
             <Ionicons name="bluetooth" size={16} color="#10B981" />
-            <Text style={[styles.quickPillText, { color: theme.textPrimary }]}>AR Glasses</Text>
+            <Text numberOfLines={1} style={[styles.quickPillText, { color: theme.textPrimary }]}>AR Glasses</Text>
           </TouchableOpacity>
         </View>
 
@@ -293,6 +293,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerLeft: {
+    flex: 1,
+    marginRight: 8,
     gap: 2,
   },
   greetingSub: {

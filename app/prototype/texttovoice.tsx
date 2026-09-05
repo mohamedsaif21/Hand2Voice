@@ -217,8 +217,9 @@ export default function TextToVoice() {
                   activeOpacity={0.75}
                 >
                   <Text style={styles.flagEmoji}>{lang.flag}</Text>
-                  <View style={{ alignItems: 'flex-start' }}>
+                  <View style={{ flex: 1, alignItems: 'flex-start' }}>
                     <Text
+                      numberOfLines={1}
                       style={[
                         styles.langPillLabel,
                         { color: isSelected ? '#fff' : theme.textPrimary, fontWeight: isSelected ? '700' : '600' },
@@ -227,6 +228,7 @@ export default function TextToVoice() {
                       {lang.label}
                     </Text>
                     <Text
+                      numberOfLines={1}
                       style={[
                         styles.langPillNative,
                         { color: isSelected ? 'rgba(255,255,255,0.85)' : theme.textTertiary },

@@ -323,6 +323,7 @@ export default function TextToSign() {
                       color={isCurrent ? '#8B5CF6' : theme.textTertiary}
                     />
                     <Text
+                      numberOfLines={1}
                       style={[
                         styles.phraseItemText,
                         {
@@ -465,7 +466,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     borderWidth: 1,
   },
-  phraseLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  phraseLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 },
   phraseItemText: { fontSize: 14 },
   categoryTag: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: RADIUS.sm },
   categoryTagText: { fontSize: 10, fontWeight: '700' },
