@@ -204,10 +204,10 @@ export default function ConnectDevicesScreen() {
                           color={isConnected ? '#10B981' : PALETTE.primary}
                         />
                       </View>
-                      <View>
-                        <Text style={[styles.deviceName, { color: theme.textPrimary }]}>{device.name}</Text>
+                      <View style={{ flex: 1, marginRight: 6 }}>
+                        <Text numberOfLines={1} style={[styles.deviceName, { color: theme.textPrimary }]}>{device.name}</Text>
                         <View style={styles.telemetryRow}>
-                          <Text style={[styles.telemetryText, { color: theme.textTertiary }]}>
+                          <Text numberOfLines={1} style={[styles.telemetryText, { color: theme.textTertiary }]}>
                             🔋 {device.battery}% • 📶 {device.signalStrength}% • ⚡ {device.latency}
                           </Text>
                         </View>

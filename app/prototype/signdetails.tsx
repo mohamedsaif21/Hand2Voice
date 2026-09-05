@@ -44,7 +44,7 @@ export default function SignDetailsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* Header */}
@@ -102,7 +102,7 @@ export default function SignDetailsScreen() {
         {/* Sign Header Details */}
         <View style={[styles.signMetaCard, { backgroundColor: theme.card, borderColor: theme.border }, SHADOWS.sm]}>
           <View style={styles.signMetaTop}>
-            <View>
+            <View style={{ flex: 1, marginRight: 8 }}>
               <Text style={[styles.signTitle, { color: theme.textPrimary }]}>Hello</Text>
               <Text style={[styles.signSub, { color: theme.textSecondary }]}>
                 Universal greeting used to initiate conversation and acknowledge presence.
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   signTitle: { fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
-  signSub: { fontSize: 13, marginTop: 4, lineHeight: 18, maxWidth: 220 },
+  signSub: { fontSize: 13, marginTop: 4, lineHeight: 18 },
   doneBadgeBtn: {
     flexDirection: 'row',
     alignItems: 'center',

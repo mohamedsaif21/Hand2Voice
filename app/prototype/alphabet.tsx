@@ -63,7 +63,7 @@ export default function SignLanguageAlphabet() {
   const isDark = colorScheme === 'dark';
   const theme = isDark ? PALETTE.dark : PALETTE.light;
 
-  const cardWidth = Math.max(90, Math.floor((screenWidth - 60) / 3));
+  const cardWidth = Math.max(90, Math.floor((screenWidth - 52) / 3));
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState<'all' | 'vowels' | 'consonants'>('all');
@@ -95,7 +95,7 @@ export default function SignLanguageAlphabet() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* Header */}
@@ -141,7 +141,11 @@ export default function SignLanguageAlphabet() {
         </View>
 
         {/* Filter Pills */}
-        <View style={styles.filterRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterRow}
+        >
           <TouchableOpacity
             style={[
               styles.filterPill,
@@ -186,7 +190,7 @@ export default function SignLanguageAlphabet() {
               Consonants (21)
             </Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
 
         {/* Alphabet Grid */}
         <View style={styles.grid}>
@@ -335,6 +339,7 @@ const styles = StyleSheet.create({
   filterRow: {
     flexDirection: 'row',
     gap: 8,
+    paddingRight: 16,
   },
   filterPill: {
     paddingHorizontal: 14,

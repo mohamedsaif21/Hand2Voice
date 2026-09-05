@@ -44,6 +44,7 @@ export default function SignToText() {
 
   const [isDetecting, setIsDetecting] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const [prediction, setPrediction] = useState('');
   const [confidence, setConfidence] = useState(0);
   const [handDetected, setHandDetected] = useState(false);
@@ -70,7 +71,7 @@ export default function SignToText() {
   useEffect(() => () => stopDetection(), [stopDetection]);
 
   const sendFrame = useCallback(async () => {
-    if (isBusy || !cameraRef.current || !permission?.granted) return;
+    if (isBusy || !cameraReady || !cameraRef.current || !permission?.granted) return;
     setIsBusy(true);
 
     try {
@@ -100,12 +101,12 @@ export default function SignToText() {
         setPrediction('');
         setConfidence(0);
       }
-    } catch {
-      // Graceful fallback during offline testing
+    } catch (error) {
+      console.error('Frame capture failed:', error);
     } finally {
       setIsBusy(false);
     }
-  }, [apiUrl, isBusy, permission?.granted]);
+  }, [apiUrl, isBusy, cameraReady, permission?.granted]);
 
   const startDetection = useCallback(async () => {
     if (!permission?.granted) {
@@ -201,6 +202,11 @@ export default function SignToText() {
                 }}
                 style={StyleSheet.absoluteFill}
                 facing={facing}
+                onCameraReady={() => setCameraReady(true)}
+                onMountError={(e) => {
+                  console.error('Camera mount failed:', e);
+                  setCameraReady(false);
+                }}
               />
 
               {/* Viewfinder Reticle Framing Corners */}
@@ -262,8 +268,8 @@ export default function SignToText() {
 
           {prediction ? (
             <View style={styles.predResultRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.predWord, { color: theme.textPrimary }]}>{prediction}</Text>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <Text numberOfLines={1} style={[styles.predWord, { color: theme.textPrimary }]}>{prediction}</Text>
                 {/* Confidence Bar */}
                 <View style={[styles.confTrack, { backgroundColor: isDark ? '#1E293B' : '#E2E8F0' }]}>
                   <View style={[styles.confBar, { width: `${Math.round(confidence * 100)}%`, backgroundColor: PALETTE.primary }]} />
