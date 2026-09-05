@@ -3,10 +3,8 @@ import { useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 import React, { useState } from 'react';
 import {
-  Dimensions,
   Image,
   Modal,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -14,13 +12,12 @@ import {
   TextInput,
   TouchableOpacity,
   useColorScheme,
+  useWindowDimensions,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppBottomNav } from '../components/AppBottomNav';
 import { PALETTE, RADIUS, SHADOWS } from '../theme';
-
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - 48) / 3;
 
 interface AlphabetLetter {
   letter: string;
@@ -62,8 +59,11 @@ const ALPHABET_DATA: AlphabetLetter[] = [
 export default function SignLanguageAlphabet() {
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const { width: screenWidth } = useWindowDimensions();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? PALETTE.dark : PALETTE.light;
+
+  const cardWidth = Math.max(90, Math.floor((screenWidth - 60) / 3));
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState<'all' | 'vowels' | 'consonants'>('all');
