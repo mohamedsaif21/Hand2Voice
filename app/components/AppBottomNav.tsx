@@ -65,7 +65,7 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({ currentTab }) => {
         {
           backgroundColor: theme.navBg,
           borderTopColor: theme.borderSubtle,
-          paddingBottom: Math.max(insets.bottom, Platform.OS === 'ios' ? 20 : 10),
+          paddingBottom: Math.max(insets.bottom, Platform.OS === 'ios' ? 14 : 10),
         },
       ]}
     >
@@ -99,6 +99,8 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({ currentTab }) => {
                 color={isActive ? PALETTE.primary : theme.textTertiary}
               />
               <Text
+                numberOfLines={1}
+                ellipsizeMode="tail"
                 style={[
                   styles.tabLabel,
                   {
@@ -134,11 +136,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 2,
     borderRadius: RADIUS.md,
-    marginHorizontal: 2,
-    gap: 3,
+    marginHorizontal: 1,
+    gap: 2,
   },
   activeTabItem: {
     borderRadius: RADIUS.md,

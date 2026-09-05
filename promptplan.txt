@@ -1,0 +1,26 @@
+Fix ONLY the remaining incorrect asset filename references in app.json.
+
+Current incorrect reference:
+./assets/images/Hand2voice.png
+
+Actual file:
+./assets/images/Hand2Voice.png
+
+Search app.json and replace every occurrence of:
+Hand2voice.png
+
+with:
+Hand2Voice.png
+
+Do NOT modify:
+- signtotext.tsx
+- server.py
+- package.json
+- Expo SDK
+- dependencies
+- camera code
+- any other files
+
+After the change, verify app.json contains no "Hand2voice.png" references and show me the exact changed lines.
+
+Do not make any other changes.
