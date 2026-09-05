@@ -8,7 +8,6 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -17,6 +16,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PALETTE, RADIUS, SHADOWS } from '../theme';
 
 const SAMPLE_GESTURES = [
@@ -36,7 +36,6 @@ export default function SignToTextWeb() {
 
   const [activeGesture, setActiveGesture] = useState(SAMPLE_GESTURES[0]);
   const [sentence, setSentence] = useState<string[]>(['Hello', 'Good morning']);
-  const [isSimulating, setIsSimulating] = useState(true);
 
   const addWord = (word: string) => {
     setSentence((prev) => [...prev, word]);
