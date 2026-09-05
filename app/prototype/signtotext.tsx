@@ -13,9 +13,6 @@ import * as Speech from 'expo-speech';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Dimensions,
-  Platform,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -24,9 +21,8 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PALETTE, RADIUS, SHADOWS } from '../theme';
-
-const { width } = Dimensions.get('window');
 
 interface PredictResponse {
   label: string;
@@ -53,7 +49,6 @@ export default function SignToText() {
   const [handDetected, setHandDetected] = useState(false);
   const [sentence, setSentence] = useState<string[]>([]);
   const [facing, setFacing] = useState<'front' | 'back'>('front');
-  const [copiedNotification, setCopiedNotification] = useState(false);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -418,7 +413,8 @@ const styles = StyleSheet.create({
   },
   cameraContainer: {
     width: '100%',
-    height: 320,
+    aspectRatio: 4 / 3,
+    maxHeight: 340,
     backgroundColor: '#000',
     borderRadius: RADIUS.xl,
     overflow: 'hidden',
