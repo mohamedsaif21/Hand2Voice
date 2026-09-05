@@ -1,0 +1,8 @@
+import os
+
+loc = 'D:/Projects/Capstone Dataset/Split_dataset/Split_dataset/extra/'   #change this location to where your dataset images are saved
+x=251 #change this according to the number of files
+
+for i, filename in enumerate(os.listdir(loc)):
+    os.rename(loc + filename, loc + str(x) + '.jpg')
+    x+=1
