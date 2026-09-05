@@ -1,0 +1,41 @@
+{
+    "model": "MLPClassifier",
+    "input_features": 63,
+    "num_classes": 26,
+    "classes": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+        "K",
+        "L",
+        "M",
+        "N",
+        "O",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "V",
+        "W",
+        "X",
+        "Y",
+        "Z"
+    ],
+    "training_samples": 16235,
+    "validation_samples": 2288,
+    "training_accuracy": 1.0,
+    "validation_accuracy": 0.8846153846153846,
+    "hidden_layers": [
+        128,
+        64
+    ]
+}
