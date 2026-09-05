@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 import React, { useState } from 'react';
 import {
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -13,6 +12,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppBottomNav } from '../components/AppBottomNav';
 import { PALETTE, RADIUS, SHADOWS } from '../theme';
 
