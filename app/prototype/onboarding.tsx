@@ -82,7 +82,7 @@ export default function Onboarding() {
   const current = SLIDES[activeSlide];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* Top Header Bar */}
@@ -171,11 +171,11 @@ export default function Onboarding() {
 
         {/* Text Content */}
         <View style={styles.textContainer}>
-          <Text style={[styles.title, { color: theme.textPrimary }]}>
+          <Text style={[styles.title, { color: theme.textPrimary }, isCompactScreen && { fontSize: 24, lineHeight: 30 }]}>
             {current.title}{' '}
             <Text style={{ color: PALETTE.primary }}>{current.highlight}</Text>
           </Text>
-          <Text style={[styles.description, { color: theme.textSecondary }]}>
+          <Text style={[styles.description, { color: theme.textSecondary }, isCompactScreen && { fontSize: 14, lineHeight: 20 }]}>
             {current.description}
           </Text>
         </View>
@@ -204,9 +204,10 @@ export default function Onboarding() {
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+      </View>
+    </ScrollView>
+  </SafeAreaView>
+);
 }
 
 const styles = StyleSheet.create({
@@ -258,9 +259,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   heroWrapper: {
-    flex: 1,
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 8,
     justifyContent: 'center',
   },
   heroCard: {
