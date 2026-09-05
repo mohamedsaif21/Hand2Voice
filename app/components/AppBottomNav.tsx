@@ -9,6 +9,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PALETTE, RADIUS, SHADOWS } from '../theme';
 
 export type NavTab = 'home' | 'learn' | 'history' | 'profile' | 'settings';
@@ -20,6 +21,7 @@ interface AppBottomNavProps {
 export const AppBottomNav: React.FC<AppBottomNavProps> = ({ currentTab }) => {
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
   const isDark = colorScheme === 'dark';
   const theme = isDark ? PALETTE.dark : PALETTE.light;
 
@@ -57,7 +59,16 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({ currentTab }) => {
   ];
 
   return (
-    <View style={[styles.wrapper, { backgroundColor: theme.navBg, borderTopColor: theme.borderSubtle }]}>
+    <View
+      style={[
+        styles.wrapper,
+        {
+          backgroundColor: theme.navBg,
+          borderTopColor: theme.borderSubtle,
+          paddingBottom: Math.max(insets.bottom, Platform.OS === 'ios' ? 20 : 10),
+        },
+      ]}
+    >
       <View style={styles.navRow}>
         {tabs.map((tab) => {
           const isActive = currentTab === tab.key;
