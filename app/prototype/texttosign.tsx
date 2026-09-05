@@ -3,9 +3,6 @@ import { ResizeMode, Video } from 'expo-av';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
-  Dimensions,
-  Platform,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -15,9 +12,8 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PALETTE, RADIUS, SHADOWS } from '../theme';
-
-const { width } = Dimensions.get('window');
 
 interface SignPhrase {
   id: number;
