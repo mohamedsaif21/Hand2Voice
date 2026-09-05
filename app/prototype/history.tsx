@@ -163,7 +163,11 @@ export default function HistoryScreen() {
         </View>
 
         {/* Filter Pills */}
-        <View style={styles.filtersRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersRow}
+        >
           <TouchableOpacity
             style={[
               styles.filterPill,
@@ -223,7 +227,7 @@ export default function HistoryScreen() {
               Starred ⭐
             </Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
 
         {/* History List */}
         {filteredItems.length > 0 ? (
@@ -334,7 +338,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   searchInput: { flex: 1, fontSize: 14 },
-  filtersRow: { flexDirection: 'row', gap: 8 },
+  filtersRow: { flexDirection: 'row', gap: 8, paddingRight: 16 },
   filterPill: {
     paddingHorizontal: 14,
     paddingVertical: 8,
