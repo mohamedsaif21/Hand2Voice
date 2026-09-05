@@ -195,7 +195,7 @@ export default function SignLanguageAlphabet() {
               key={item.letter}
               style={[
                 styles.gridCard,
-                { backgroundColor: theme.card, borderColor: theme.border },
+                { width: cardWidth, backgroundColor: theme.card, borderColor: theme.border },
                 SHADOWS.sm,
               ]}
               onPress={() => handleOpenLetter(item)}
@@ -349,7 +349,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   gridCard: {
-    width: CARD_WIDTH,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
     padding: 10,
