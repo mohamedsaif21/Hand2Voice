@@ -1,158 +1,172 @@
-﻿<p align="center">
-  <img src="assets/images/hand2voice-banner.png" alt="Hand2Voice Banner" width="100%" />
+﻿# Hand2Voice
+
+<p align="center">
+  <img src="assets/images/Hand2Voice.png" alt="Hand2Voice logo" width="140" />
 </p>
 
-# 🤟 Hand2Voice | SignLink AI App
+<p align="center"><strong>Accessible communication tools for Indian Sign Language (ISL).</strong></p>
 
-![Platform](https://img.shields.io/badge/platform-Android%20%7C%20iOS%20%7C%20Web-blue)
-![AI](https://img.shields.io/badge/AI-TensorFlow%20Lite-orange)
-![ISL](https://img.shields.io/badge/Sign%20Language-Indian%20Sign%20Language-green)
-![Status](https://img.shields.io/badge/status-Prototype-success)
-![Open Source](https://img.shields.io/badge/open%20source-yes-brightgreen)
+<p align="center">
+  <img src="https://img.shields.io/badge/status-prototype-F59E0B" alt="Prototype" />
+  <img src="https://img.shields.io/badge/platform-Android%20%7C%20iOS%20%7C%20Web-2563EB" alt="Platforms" />
+  <img src="https://img.shields.io/badge/framework-Expo%2054-000020" alt="Expo 54" />
+  <img src="https://img.shields.io/badge/backend-FastAPI-009688" alt="FastAPI" />
+</p>
 
-> **An AI-powered mobile application that bridges Indian Sign Language (ISL) with Text and Voice to enable inclusive communication for the deaf and mute community.**
+Hand2Voice is an Expo and React Native application that explores two-way communication between Indian Sign Language, text, and speech. The project includes an optional local computer-vision API for recognizing ISL fingerspelling and a set of learning and communication screens.
 
----
+> This repository is an active prototype. The current recognition model focuses on alphabet signs and should not be treated as a complete ISL translation system.
 
-## 🌟 Project Overview
+## Features
 
-**Hand2Voice (SignLink AI)** is a mobile-first, AI-driven communication platform designed to reduce the communication gap between **deaf, mute, and hearing individuals**.
+- **Sign to Text:** Captures camera frames and sends them to the recognition API for alphabet predictions.
+- **Text to Speech:** Speaks text in English, Hindi, Tamil, or Malayalam using Expo Speech.
+- **Text to Sign:** Presents sign-language visuals for supported content.
+- **Alphabet learning:** Browse A-Z sign references and practice individual letters.
+- **Mobile experience:** Camera permissions, sentence building, speech playback, camera switching, and light/dark themes are handled in the client.
 
-Most existing sign language applications focus on **American Sign Language (ASL)**.  
-Hand2Voice uniquely focuses on **Indian Sign Language (ISL)** and enables **real-time, two-way communication** between sign language, text, and voice.
-
----
-
-## 🧠 Problem Statement
-
-- Lack of real-time Indian Sign Language translation tools  
-- Most solutions are ASL-focused, not ISL  
-- Communication barriers in education, healthcare, and workplaces  
-- High dependency on human interpreters  
-
----
-
-## 🚀 Key Features
-
-✅ Real-time **Sign → Text** translation using AI  
-✅ **Text / Voice → Sign** animations (GIFs / visuals)  
-✅ Alphabet learning module (A–Z signs)  
-✅ Multi-language **Text-to-Speech** support  
-✅ Firebase authentication & cloud storage  
-✅ Clean, accessible, mobile-friendly UI  
-
----
-
-## 📱 App Screenshots
-
-> 📌 Upload screenshots inside `assets/images/`
+## Screenshots
 
 <table>
   <tr>
-    <td align="center"><b>Onboarding</b></td>
-    <td align="center"><b>Sign to Text</b></td>
-    <td align="center"><b>Text to Sign</b></td>
-    <td align="center"><b>Text to Voice</b></td>
-    <td align="center"><b>Learn the sign</b></td>
+    <td align="center"><strong>Onboarding</strong></td>
+    <td align="center"><strong>Sign to Text</strong></td>
+    <td align="center"><strong>Text to Sign</strong></td>
+    <td align="center"><strong>Text to Speech</strong></td>
   </tr>
   <tr>
-    <td><img src="assets/images/page 1.jpeg" width="220"/></td>
-    <td><img src="assets/images/signtotext.png" width="220"/></td>
-    <td><img src="assets/images/page 2.jpeg" width="220"/></td>
-    <td><img src="assets/images/page 3.jpeg" width="220"/></td>
-     <td><img src="assets/images/page 4.jpeg" width="220"/></td>
+    <td><img src="assets/images/page%201.jpeg" alt="Onboarding screen" width="220" /></td>
+    <td><img src="assets/images/Sign%20to%20Text.jpg" alt="Sign to Text screen" width="220" /></td>
+    <td><img src="assets/images/Text%20to%20Sign.jpg" alt="Text to Sign screen" width="220" /></td>
+    <td><img src="assets/images/Text%20to%20Speech.jpg" alt="Text to Speech screen" width="220" /></td>
   </tr>
 </table>
 
----
+## Architecture
 
-## 📁 Project Structure
-
-Below is the recommended, easy-to-scan project layout for Hand2Voice with key files called out.
-
-```
-Hand2Voice/
-├── app/                          # React Native (Expo) app UI
-│   ├── _layout.tsx
-│   ├── index.tsx
-│   └── prototype/                # Feature screens (Sign ↔ Text, Text → Voice, etc.)
-│       ├── alphabet.tsx
-│       ├── signtotext.tsx
-│       ├── texttosign.tsx
-│       ├── texttovoice.tsx
-│       └── onboarding.tsx
-├── app-example/                   # Example app / demo screens and components
-│   ├── app/
-│   └── components/
-├── assets/                        # Static assets: images, alphabet GIFs, videos
-│   ├── images/
-│   ├── alphabet/
-│   └── video/
-├── SignLanguageDetectionUsingML/  # ML training & gesture detection
-│   ├── collectdata.py
-│   ├── trainmodel.py
-│   ├── model.h5
-│   └── MP_Data/                   # Raw MediaPipe / collected dataset
-├── model_conversion/              # Scripts for converting models to TFLite
-├── text to voices/                # Text-to-Speech backend (server / scripts)
-├── android/                       # Native Android project files (Gradle)
-│   ├── app/
-│   │   └── src/
-│   │       └── main/
-│   │           ├── AndroidManifest.xml
-│   │           └── java/com/anonymous/Hand2Voice/
-│   │               ├── MainActivity.kt
-│   │               └── MainApplication.kt
-│   └── gradle/
-├── firebaseConfig.js              # Firebase config and initialization
-├── app.json                       # Expo configuration
-├── package.json                   # JS dependencies & scripts
-├── tsconfig.json                  # TypeScript config
-└── README.md                      # This file
+```text
+Expo / React Native app
+  ├─ Camera capture and permissions
+  ├─ Sign, text, voice, and learning screens
+  └─ POST /predict ──> FastAPI recognition service
+                           ├─ MediaPipe hand landmarks
+                           └─ joblib alphabet classifier
 ```
 
----
+The app uses `expo-speech` for speech synthesis. The recognition API loads `backend/alphabet_model.joblib` and `backend/data/letters_labels.json`, extracts 63 normalized hand-landmark features, and returns an alphabet prediction with confidence.
 
-## 🔄 System Architecture
+## Repository Layout
 
+```text
+app/                  Expo Router screens and shared UI
+  components/         Navigation and screen components
+  prototype/          Sign, text, voice, profile, and learning screens
+  theme/              Shared color, spacing, and shadow tokens
+assets/               Images, alphabet references, and video assets
+backend/              FastAPI service, model, labels, and dataset scripts
+android/              Native Android project generated for Expo
+app.json              Expo application configuration
+package.json          JavaScript dependencies and development scripts
 ```
-Mobile App (Expo)
-        ↓
-Firebase (Auth + Storage)
-        ↓
-AI Model (TensorFlow Lite)
-        ↓
-Text / Voice / Sign Output
+
+## Requirements
+
+- Node.js 18 or newer
+- npm
+- Python 3.10 or newer for the recognition API
+- Android Studio and an Android emulator, or a physical device, for camera testing
+- Xcode on macOS for iOS builds
+
+## Run the mobile app
+
+From the repository root:
+
+```bash
+npm install
+npm start
 ```
 
+Then choose a target from the Expo development server. The available scripts are:
+
+```bash
+npm run android   # Build and run the Android project
+npm run ios       # Build and run the iOS project (macOS only)
+npm run web       # Run the web target
+npm run lint      # Check the TypeScript and Expo codebase
+```
+
+## Run the recognition API
+
+Create and activate a virtual environment, then install the backend dependencies:
+
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\Activate.ps1        # Windows PowerShell
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt joblib
+python server.py
+```
+
+The API listens on `http://localhost:8000`. Verify it with:
+
+```text
+http://localhost:8000/health
+```
+
+For the Android emulator, the mobile app defaults to `http://10.0.2.2:8000`. For a physical device, set the local machine's LAN address before starting Expo:
+
+```powershell
+$env:EXPO_PUBLIC_SIGN_API_URL = "http://192.168.1.10:8000"
+npm start
+```
+
+The device and computer must be connected to the same network, and the API port must be reachable through the local firewall.
+
+## API Reference
+
+### `GET /health`
+
+Returns service and model status:
+
+```json
+{
+  "status": "ok",
+  "model_loaded": true,
+  "classes": 26
+}
+```
+
+### `POST /predict`
+
+Accepts a base64-encoded image, with or without a data-URL prefix:
+
+```json
+{
+  "image_base64": "<base64 image data>"
+}
+```
+
+The response includes `label`, `confidence`, `hand_detected`, and `message`. A request without a detectable hand returns `hand_detected: false` rather than a letter prediction.
+
+## Development Notes
+
+- The app currently recognizes alphabet gestures, not continuous words or full sentences automatically.
+- The camera screen only adds predictions at or above its confidence threshold.
+- Keep model preprocessing in sync with `backend/prepare_dataset.py` when retraining.
+- Do not commit secrets, local environment files, or device-specific API URLs.
+
+## Contributing
+
+1. Create a focused branch for your change.
+2. Run `npm run lint` and any relevant backend tests.
+3. Update the documentation when behavior, setup, or API responses change.
+4. Open a pull request with a clear description and testing notes.
+
+## License and Dataset Attribution
+
+Review the license files in `backend/` and the upstream dataset terms before redistributing model files or dataset images. The backend dataset documentation and citation are available in [backend/README.md](backend/README.md).
+
 ---
 
-## 🎬 App Demo (Optional but Highly Recommended)
-
-> Demo coming soon...
-
----
-
-## 💻 Tech Stack
-
-- **Frontend**: React Native (Expo)
-- **Backend**: Firebase (Firestore, Storage, Authentication)
-- **AI / ML**: TensorFlow, MediaPipe, TFLite
-- **Animations**: LottieFiles / GIFs
-- **Platforms**: Android, iOS, Web
-
----
-
-## 📖 Getting Started
-
-> Documentation coming soon...
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Feel free to submit pull requests or open issues.
-
----
-
-**Made with  by the Hand2Voice Team**
+Built by the Hand2Voice team.
