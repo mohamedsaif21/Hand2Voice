@@ -12,14 +12,14 @@ import { useRouter } from 'expo-router';
 import * as Speech from 'expo-speech';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  View,
+    ActivityIndicator,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PALETTE, RADIUS, SHADOWS } from '../theme';
@@ -92,6 +92,7 @@ export default function SignToText() {
       if (!res.ok) return;
 
       const data = (await res.json()) as PredictResponse;
+      console.log("PREDICTION RESPONSE:", data);
       setHandDetected(data.hand_detected);
 
       if (data.hand_detected && data.label && data.confidence >= MIN_CONFIDENCE) {
