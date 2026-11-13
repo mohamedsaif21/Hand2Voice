@@ -38,6 +38,9 @@ yarn-error.*
 
 app-example
 
+# Backend (kept local, not deployed)
+backend/
+
 # generated native folders
 /ios
 /android
